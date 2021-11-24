@@ -54,7 +54,6 @@ export default {
 
     handleDateSelect(selectInfo) {
       let title = prompt('Please enter a new title for your event')
-      let description = prompt('Please enter a description for your event')
       let calendarApi = selectInfo.view.calendar
 
       calendarApi.unselect() // clear date selection
@@ -63,7 +62,6 @@ export default {
         calendarApi.addEvent({
           id: createEventId(),
           title,
-          description,
           start: selectInfo.startStr,
           end: selectInfo.endStr,
           allDay: selectInfo.allDay
@@ -72,9 +70,11 @@ export default {
     },
 
     handleEventClick(clickInfo) {
-      if (confirm(`Are you sure you want to delete the event '${clickInfo.event.title}'`)) {
-        clickInfo.event.remove()
-      }
+      // if (confirm(`Are you sure you want to delete the event '${clickInfo.event.title}'`)) {
+      //   clickInfo.event.remove()SS
+      // }
+      // show a pop-up window
+
     },
 
     handleEvents(events) {
