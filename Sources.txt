@@ -1,0 +1,6 @@
+// Used template to get started on project
+https://github.com/fullcalendar/fullcalendar-example-projects/tree/master/vue
+
+// tutorial on fullcalendar and vuejs
+https://www.youtube.com/watch?v=A-ESlbM-XzE&t=78s 
+
