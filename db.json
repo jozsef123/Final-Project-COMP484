@@ -1,30 +1,4 @@
 {
   "events": [
-    {
-      "event": {
-        "title": "Event Title",
-        "start": "2021-11-28",
-        "end": "2021-11-29",
-        "id": "2",
-        "extendedProps": {
-          "text": "french fires"
-        }
-      },
-      "relatedEvents": [],
-      "id": 1
-    },
-    {
-      "event": {
-        "title": "Event Title",
-        "start": "2021-11-29",
-        "end": "2021-11-30",
-        "id": "3",
-        "extendedProps": {
-          "text": "french fires"
-        }
-      },
-      "relatedEvents": [],
-      "id": 3
-    }
   ]
 }

@@ -135,7 +135,7 @@ export default {
       return data
     },
     async fetchEvent(id){
-      const res = await fetch(`http://localhost:5000/events/events/${id}`)
+      const res = await fetch(`http://localhost:5000/events/${id}`)
       const data = await res.json()
       return data
     }
