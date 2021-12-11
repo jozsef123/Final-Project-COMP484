@@ -8,7 +8,7 @@ import { INITIAL_EVENTS, createEventId } from './event-utils'
 
 import NotesModal from './components/NotesModal.vue'
 import Sidebar from './components/Sidebar.vue'
-
+let main;
 var clickData;
 export default {
 
@@ -35,6 +35,17 @@ export default {
         },
         initialView: 'dayGridMonth',
         //initialEvents: INITIAL_EVENTS, // alternatively, use the `events` setting to fetch from a feed
+        // events: function(){
+        //   console.log(main)
+        //     var events = [];
+        //     this.events = main;
+        //     console.log(main)
+        //     for(let i = 0; i < this.events.length; i++){ 
+        //       main.push(this.events[i].event);
+        //     }
+        //     events = main;
+        //     callback(events);
+        // },
         editable: true,
         selectable: true,
         selectMirror: true,
@@ -55,7 +66,6 @@ export default {
   },
 
   methods: {
-
     handleWeekendsToggle() {
       this.calendarOptions.weekends = !this.calendarOptions.weekends // update a property
     },
@@ -90,7 +100,7 @@ export default {
         clickInfo.event.remove()
         this.closeModal();
       }
-      this.deleteEventFromDB(clickInfo.event.id - 1);
+      this.deleteEventFromDB(clickInfo.event.id);
     },
 
     async deleteEventFromDB(id){
@@ -104,8 +114,8 @@ export default {
     },
 
 
-    handleEvents(events1) {
-      this.currentEvents = events1
+    handleEvents(events) {
+    this.currentEvents = events
     },
 
     async addEventToDB(event) {
@@ -129,19 +139,21 @@ export default {
     closeModal() {
       this.isModalVisible = false;
     },
+
     async fetchEvents(){
       const res = await fetch('http://localhost:5000/events')
       const data = await res.json()
       return data
     },
+
     async fetchEvent(id){
       const res = await fetch(`http://localhost:5000/events/${id}`)
       const data = await res.json()
       return data
-    }
+    },
   },
   async created() {
-    this.events = await this.fetchEvents()
+    this.events = await this.fetchEvents();
   },
 }
 </script>
