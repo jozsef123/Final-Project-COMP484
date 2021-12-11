@@ -6,14 +6,21 @@ import interactionPlugin from '@fullcalendar/interaction'
 import listPlugin from '@fullcalendar/list'
 import { INITIAL_EVENTS, createEventId } from './event-utils'
 
+import NotesModal from './components/NotesModal.vue'
+import Sidebar from './components/Sidebar.vue'
+
+var clickData;
 export default {
 
   components: {
-    FullCalendar // make the <FullCalendar> tag available
+    FullCalendar,       // make the <FullCalendar> tag available, calendar component
+    NotesModal,         // Pop up notes modal, fades calendar and sidebar
+    Sidebar,            // Show sidebar to the left of the calendar page
   },
 
   data: function() {
     return {
+      isModalVisible: false,    // is the modal for taking notes visible, no
       calendarOptions: {
         plugins: [
           dayGridPlugin,
@@ -27,7 +34,7 @@ export default {
           right: 'dayGridMonth, timeGridWeek, timeGridDay, listWeek'
         },
         initialView: 'dayGridMonth',
-        initialEvents: INITIAL_EVENTS, // alternatively, use the `events` setting to fetch from a feed
+        //initialEvents: INITIAL_EVENTS, // alternatively, use the `events` setting to fetch from a feed
         editable: true,
         selectable: true,
         selectMirror: true,
@@ -35,14 +42,15 @@ export default {
         weekends: true,
         select: this.handleDateSelect,
         eventClick: this.handleEventClick,
-        eventsSet: this.handleEvents
-        /* you can update a remote database when these fire:
-        eventAdd:
+        eventsSet: this.handleEvents,
+        /* you can update a remote database when these fire: */
+        eventAdd: this.addEventToDB,
+        /*
         eventChange:
-        eventRemove:
         */
+        //eventRemove: this.deleteEventFromDB,
       },
-      currentEvents: []
+      currentEvents: [],
     }
   },
 
@@ -53,52 +61,113 @@ export default {
     },
 
     handleDateSelect(selectInfo) {
-      let title = prompt('Please enter a new title for your event')
+      let title = 'Event Title'; //add input from modal component for title
+      let text = 'french fires';// take text from NotesModal
       let calendarApi = selectInfo.view.calendar
-
       calendarApi.unselect() // clear date selection
-
       if (title) {
         calendarApi.addEvent({
           id: createEventId(),
           title,
           start: selectInfo.startStr,
           end: selectInfo.endStr,
-          allDay: selectInfo.allDay
+          allDay: selectInfo.allDay,
+          text
         })
       }
     },
 
-    handleEventClick(clickInfo) {
-      // if (confirm(`Are you sure you want to delete the event '${clickInfo.event.title}'`)) {
-      //   clickInfo.event.remove()SS
-      // }
-      // show a pop-up window
-
+    // If user presses an event, call show modal function.
+    handleEventClick(selectInfo) {
+      this.showModal();
+      clickData = selectInfo;   // save event object, in case I have to delete it
     },
 
-    handleEvents(events) {
-      this.currentEvents = events
-    }
+    // function to call when delete button is pressed
+     handleDeleteButton() {
+      var clickInfo = clickData;    // retrieve event object, so I can delete it
+      if (confirm(`Are you sure you want to delete the event '${clickInfo.event.title}'`)) {
+        clickInfo.event.remove()
+        this.closeModal();
+      }
+      this.deleteEventFromDB(clickInfo.event.id - 1);
+    },
 
-    
-  }
+    async deleteEventFromDB(id){
+      const res = await fetch(`http://localhost:5000/events/${id}`, {
+        method: 'DELETE'
+      })
+
+      res.status === 200 ? 
+      (this.events = this.events.filter((event) => event.id !== id)) :
+      alert('Error deleting event')
+    },
+
+
+    handleEvents(events1) {
+      this.currentEvents = events1
+    },
+
+    async addEventToDB(event) {
+      const res = await fetch('http://localhost:5000/events',{
+        method: 'POST',
+        headers: {
+          'Content-type': 'application/json',
+        },
+        body: JSON.stringify(event)
+      })
+      const data = await res.json()
+      this.events = [...this.events, data]
+    },
+
+    // make modal visible
+    showModal() {
+      this.isModalVisible = true;
+    },
+
+    // close modal for taking notes
+    closeModal() {
+      this.isModalVisible = false;
+    },
+    async fetchEvents(){
+      const res = await fetch('http://localhost:5000/events')
+      const data = await res.json()
+      return data
+    },
+    async fetchEvent(id){
+      const res = await fetch(`http://localhost:5000/events/events/${id}`)
+      const data = await res.json()
+      return data
+    }
+  },
+  async created() {
+    this.events = await this.fetchEvents()
+  },
 }
 </script>
 
 <template>
   <div class='demo-app'>
-    <div class='demo-app-main'>
+      <NotesModal
+            v-show="isModalVisible"
+            @close="closeModal"
+            @deleteEvent="handleDeleteButton"
+          />
+          <Sidebar
+      v-if="isModalVisible == false"
+       />
+      <div class='demo-app-main'>
       <FullCalendar
-        class='demo-app-calendar'
-        :options='calendarOptions'
+      v-if="isModalVisible == false"
+      class='demo-app-calendar'
+      :options='calendarOptions'       
       >
         <template v-slot:eventContent='arg'>
           <b>{{ arg.timeText }}</b>
           <i>{{ arg.event.title }}</i>
         </template>
       </FullCalendar>
-    </div>
+      </div>
   </div>
 </template>
 
