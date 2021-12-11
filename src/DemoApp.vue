@@ -35,17 +35,7 @@ export default {
         },
         initialView: 'dayGridMonth',
         //initialEvents: INITIAL_EVENTS, // alternatively, use the `events` setting to fetch from a feed
-        // events: function(){
-        //   console.log(main)
-        //     var events = [];
-        //     this.events = main;
-        //     console.log(main)
-        //     for(let i = 0; i < this.events.length; i++){ 
-        //       main.push(this.events[i].event);
-        //     }
-        //     events = main;
-        //     callback(events);
-        // },
+        events: this.getEvents,
         editable: true,
         selectable: true,
         selectMirror: true,
@@ -138,6 +128,16 @@ export default {
     // close modal for taking notes
     closeModal() {
       this.isModalVisible = false;
+    },
+
+    async getEvents(){
+      this.events = await this.fetchEvents();
+      main = [];
+      for(let i = 0; i < this.events.length; i++){ 
+         main.push(this.events[i].event);
+      }
+      this.events = main;
+      return this.events;
     },
 
     async fetchEvents(){
