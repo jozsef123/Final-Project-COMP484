@@ -1,7 +1,7 @@
 <template>
     <div class = "sidebar">
         <h1>Side bar</h1>
-        <button
+        <button class = "logout"
             type="button"
             @click="close"                
             aria-label="Log out button"
@@ -32,5 +32,9 @@
   background: #51c2f6;
   border-right: 1px solid #d3e2e8;
   padding: 2em;
+}
+
+.logout{
+  width: 150px;
 }
 </style>
