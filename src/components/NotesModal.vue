@@ -12,8 +12,6 @@
         >
           <input v-model="message" placeholder="edit event title">
           
-          <!-- call function to delete event if user presses delete button -->
-          <!-- change delete to trash bin font icon -->
           <button
             type="button"
             class="btn-delete"
@@ -28,7 +26,8 @@
           class="modal-body"
           id="modalDescription"
         >
-          <textarea v-model="message" placeholder="add details here"></textarea>
+          <input id = "textBox" type="text"
+           placeholder="add details here">
         </section>
 
         <footer class="modal-footer">
@@ -51,16 +50,13 @@
 import FullCalendar from '@fullcalendar/vue/dist/FullCalendar';
   export default {
     name: 'NotesModal',
-    props:{
-      deleteButton: Boolean,
-    },
     methods: {
       close() {
         this.$emit('close');
       },
       deleteEvent(){
         this.$emit('deleteEvent');
-      }
+      },
     },
   };
 </script>

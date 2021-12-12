@@ -4,7 +4,7 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import listPlugin from '@fullcalendar/list'
-import { INITIAL_EVENTS, createEventId } from './event-utils'
+//import { INITIAL_EVENTS, createEventId } from './event-utils'
 
 import NotesModal from './components/NotesModal.vue'
 import Sidebar from './components/Sidebar.vue'
@@ -47,10 +47,9 @@ export default {
         eventsSet: this.handleEvents,
         /* you can update a remote database when these fire: */
         eventAdd: this.addEventToDB,
-        /*
-        eventChange:
-        */
-        //eventRemove: this.deleteEventFromDB,  // check docs on how to call method to remove event
+        eventChange: this.updateEventToDB,
+        
+        //eventRemove: 
       },
       currentEvents: [],
     }
@@ -106,7 +105,6 @@ export default {
       alert('Error deleting event')
     },
 
-
     handleEvents(events) {
     this.currentEvents = events
     },
@@ -118,6 +116,18 @@ export default {
           'Content-type': 'application/json',
         },
         body: JSON.stringify(event)
+      })
+      const data = await res.json()
+      this.events = [...this.events, data]
+    },
+
+    async updateEventToDB(clickInfo){
+       const res = await fetch(`http://localhost:5000/events/${clickInfo.event.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-type': 'application/json',
+        },
+        body: JSON.stringify(clickInfo)
       })
       const data = await res.json()
       this.events = [...this.events, data]
