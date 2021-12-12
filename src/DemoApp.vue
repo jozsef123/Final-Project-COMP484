@@ -9,6 +9,7 @@ import { INITIAL_EVENTS, createEventId } from './event-utils'
 import NotesModal from './components/NotesModal.vue'
 import Sidebar from './components/Sidebar.vue'
 let main;
+let idNum = 1;
 var clickData;
 export default {
 
@@ -49,7 +50,7 @@ export default {
         /*
         eventChange:
         */
-        //eventRemove: this.deleteEventFromDB,
+        //eventRemove: this.deleteEventFromDB,  // check docs on how to call method to remove event
       },
       currentEvents: [],
     }
@@ -67,7 +68,7 @@ export default {
       calendarApi.unselect() // clear date selection
       if (title) {
         calendarApi.addEvent({
-          id: createEventId(),
+          id: idNum++,
           title,
           start: selectInfo.startStr,
           end: selectInfo.endStr,
@@ -91,8 +92,10 @@ export default {
         this.closeModal();
       }
       this.deleteEventFromDB(clickInfo.event.id);
+      idNum--;
     },
 
+    // bug where it deletes based on event.id not id
     async deleteEventFromDB(id){
       const res = await fetch(`http://localhost:5000/events/${id}`, {
         method: 'DELETE'
@@ -135,6 +138,13 @@ export default {
       main = [];
       for(let i = 0; i < this.events.length; i++){ 
          main.push(this.events[i].event);
+         if (this.events[i].id > idNum)
+         {
+           idNum = this.events[i].id;
+         }
+      }
+      if (this.events.length > 0){
+        idNum++;
       }
       this.events = main;
       return this.events;
