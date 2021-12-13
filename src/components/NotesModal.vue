@@ -13,7 +13,7 @@
           <input type = "text" placeholder="edit event title" :value="title"
           @input = "changeNoteTitle">
 
-          <p id = "dateInfo">howdydddddd</p>
+          <input type = "text" id = "dateInfo" :value= "date" readonly>
           
           <button
             type="button"
@@ -52,7 +52,7 @@
 <script>
   export default {
     name: 'NotesModal',
-    props: ['title','msg'],
+    props: ['title','date','msg'],
     data(){
       return{
         noteTitle: '',
@@ -79,10 +79,6 @@
 </script>
 
 <style>
-  textarea{
-    height: 250px;
-    width: 350px;
-  }
 
   .modal-backdrop {
     position: fixed;
@@ -102,8 +98,8 @@
     overflow-x: auto;
     display: flex;
     flex-direction: column;
-    height: 400px;
-    width: 400px;
+    height: 600px;
+    width: 600px;
   }
 
   .modal-header,
@@ -155,11 +151,13 @@
   }
 
   #textBox{
-    height: 250px;
-    width: 360px;
+    height: 440px;
+    width: 575px;
   }
 
-  .datesInfo{
-    margin-right: 150px;
+  #dateInfo{
+    width: 200px;
+    margin-right: 90px;
+    margin-left: 30px;
   }
 </style>

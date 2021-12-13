@@ -21,9 +21,10 @@ export default {
 
   data: function() {
     return {
-      isModalVisible: false,    // notes modal is not visible
+      isModalVisible: false,        // notes modal is not visible
       noteTitle: '',                // Notes title
-      message: '',              // Notes message
+      dateInfo: '',                 // Notes date
+      message: '',                  // Notes message
       calendarOptions: {
         plugins: [
           dayGridPlugin,
@@ -64,8 +65,8 @@ export default {
     },
 
     handleDateSelect(selectInfo) {
-      let title = ''; //add input from modal component for title
-      let text = '';// = this.message;// take text from NotesModal
+      let title = 'Event title'; //add input from modal component for title
+      let text = 'Event description';// = this.message;// take text from NotesModal
       let calendarApi = selectInfo.view.calendar
       calendarApi.unselect() // clear date selection
       if (title) {
@@ -77,6 +78,7 @@ export default {
           allDay: selectInfo.allDay,
           text
         })
+        this.dateInfo = selectInfo.startStr + " to " + selectInfo.endStr;
       }
     },
 
@@ -126,7 +128,6 @@ export default {
     },
 
     async updateEventToDB(clickInfo){
-      console.log(clickInfo)
        const res = await fetch(`http://localhost:5000/events/${clickInfo.event.id}`, {
         method: 'PUT',
         headers: {
@@ -143,13 +144,13 @@ export default {
       this.isModalVisible = true;
       let data;
       data = await this.getEvents();
-      console.log("hello")
       let i;
       for (i = 0; i < data.length; i++)
       {
         if (data[i].id == clickData.event.id){
           this.noteTitle = data[i].title;
           this.message = data[i].extendedProps.text;
+          this.dateInfo =  data[i].start + " to " + data[i].end;
         }
       }
     },
@@ -157,6 +158,20 @@ export default {
     // close modal for taking notes
     async closeModal() {
       this.isModalVisible = false;
+      let data;
+      data = await this.fetchEvents();
+      console.log(data)
+      let i;
+      let num = i;
+      for (i = 0; i < data.length; i++){
+        if(data[i].id == clickData.event.id){
+          num = i;
+        }
+      }
+      data[num].event.title = this.noteTitle;
+      data[num].event.extendedProps.text = this.message;
+      this.updateEventToDB(data[num]);
+      location.reload();
     },
 
     async getEvents(){
@@ -197,11 +212,12 @@ export default {
 <template>
   <div class='demo-app'>
       <NotesModal
-            v-show="isModalVisible"
-            @close="closeModal"
-            @deleteEvent="handleDeleteButton"
+            v-show = "isModalVisible"
+            @close = "closeModal"
+            @deleteEvent = "handleDeleteButton"
             :title = "noteTitle"
-            :msg="message"
+            :date = "dateInfo"
+            :msg = "message"
             @noteTitleChanged = "noteTitle = $event"
             @messageChanged = "message = $event"
           />
