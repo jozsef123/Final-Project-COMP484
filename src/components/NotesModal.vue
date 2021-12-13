@@ -10,7 +10,7 @@
           class="modal-header"
           id="modalTitle"
         >
-          <input type = "text" placeholder="edit event title" :value="title"
+          <input type = "text" id = "titleInfo" placeholder="edit event title" :value="title"
           @input = "changeNoteTitle">
 
           <input type = "text" id = "dateInfo" :value= "date" readonly>
@@ -93,7 +93,7 @@
   }
 
   .modal {
-    background: #FFFFFF;
+    background: #edf8ff;
     box-shadow: 2px 2px 20px 1px;
     overflow-x: auto;
     display: flex;
@@ -110,13 +110,13 @@
 
   .modal-header {
     position: relative;
-    border-bottom: 1px solid #eeeeee;
+    border-bottom: 1px solid #edf8ff;
     color: #4AAE9B;
     justify-content: space-between;
   }
 
   .modal-footer {
-    border-top: 1px solid #eeeeee;
+    border-top: 1px solid #edf8ff;
     flex-direction: column;
     justify-content: flex-end;
   }
@@ -136,7 +136,7 @@
     cursor: pointer;
     font-weight: bold;
     color: rgb(206, 49, 49);
-    background: #ffffff;
+    background: #ffd8d8;
     border: 1px solid #ff0000;
     border-radius: 2px;
     font-size: 1.5em;
@@ -145,19 +145,34 @@
 
   .btn-close {
     color: white;
-    background: #4AAE9B;
-    border: 1px solid #4AAE9B;
+    background: #0395b9;
+    border: 1px solid #0395b9;
     border-radius: 2px;
   }
 
   #textBox{
-    height: 440px;
-    width: 575px;
+    height: 410px;
+    width: 540px;
+    font-family: Georgia, Times, serif;
+    font-size: 16px;
+    border: 5px solid lightblue;
+    padding: 10px;
   }
+
+  #titleInfo{
+    font-family: Georgia, Times, serif;
+    font-size: 16px;
+    border: solid lightblue;
+  }
+  
 
   #dateInfo{
     width: 200px;
     margin-right: 90px;
     margin-left: 30px;
+    font-family: Georgia, Times, serif;
+    font-size: 16px;
+    border: solid lightblue;
   }
+
 </style>

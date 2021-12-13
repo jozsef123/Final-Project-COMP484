@@ -4,7 +4,6 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import listPlugin from '@fullcalendar/list'
-//import { INITIAL_EVENTS, createEventId } from './event-utils'
 
 import NotesModal from './components/NotesModal.vue'
 import Navbar from './components/Navbar.vue'
@@ -50,9 +49,7 @@ export default {
         eventsSet: this.handleEvents,
         /* you can update a remote database when these fire: */
         eventAdd: this.addEventToDB,
-        eventChange: this.updateEventToDB, // figure out how to trigger, when closing modal
-                                           // with updated text information
-        
+        eventChange: this.updateEventToDB,         
         //eventRemove: 
       },
       currentEvents: [],
@@ -65,21 +62,19 @@ export default {
     },
 
     handleDateSelect(selectInfo) {
-      let title = 'Event title'; //add input from modal component for title
-      let text = 'Event description';// = this.message;// take text from NotesModal
+      let title = ''; //add input from modal component for title
+      let text = '';// = this.message;// take text from NotesModal
       let calendarApi = selectInfo.view.calendar
       calendarApi.unselect() // clear date selection
-      if (title) {
-        calendarApi.addEvent({
-          id: idNum++,
-          title,
-          start: selectInfo.startStr,
-          end: selectInfo.endStr,
-          allDay: selectInfo.allDay,
-          text
-        })
-        this.dateInfo = selectInfo.startStr + " to " + selectInfo.endStr;
-      }
+      calendarApi.addEvent({
+        id: idNum++,
+        title,
+        start: selectInfo.startStr,
+        end: selectInfo.endStr,
+        allDay: selectInfo.allDay,
+        text
+      })
+      this.dateInfo = selectInfo.startStr + " to " + selectInfo.endStr;
     },
 
     // If user presses an event, call show modal function.
@@ -99,7 +94,6 @@ export default {
       idNum--;
     },
 
-    // bug where it deletes based on event.id not id
     async deleteEventFromDB(id){
       const res = await fetch(`http://localhost:5000/events/${id}`, {
         method: 'DELETE'
@@ -115,7 +109,6 @@ export default {
     },
 
     async addEventToDB(event) {
-      console.log('hello')
       const res = await fetch('http://localhost:5000/events',{
         method: 'POST',
         headers: {
@@ -156,13 +149,11 @@ export default {
     },
 
     // close modal for taking notes
+    // update any changes to the events from the notes modal
     async closeModal() {
+      let data, i, num;
       this.isModalVisible = false;
-      let data;
       data = await this.fetchEvents();
-      console.log(data)
-      let i;
-      let num = i;
       for (i = 0; i < data.length; i++){
         if(data[i].id == clickData.event.id){
           num = i;
@@ -171,7 +162,7 @@ export default {
       data[num].event.title = this.noteTitle;
       data[num].event.extendedProps.text = this.message;
       this.updateEventToDB(data[num]);
-      location.reload();
+      location.reload();        // refresh web page to show updated event title
     },
 
     async getEvents(){
@@ -274,7 +265,7 @@ b { /* used for event dates/times */
 
 .fc { /* the calendar root */
   max-height: 800px;
-  max-width: 1500px;
+  max-width: 1600px;
   margin: 0 auto;
 }
 
