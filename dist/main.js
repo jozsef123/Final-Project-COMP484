@@ -58,6 +58,8 @@ var clickData;
       // notes modal is not visible
       noteTitle: '',
       // Notes title
+      dateInfo: '',
+      // Notes date
       message: '',
       // Notes message
       calendarOptions: {
@@ -95,12 +97,11 @@ var clickData;
       this.calendarOptions.weekends = !this.calendarOptions.weekends; // update a property
     },
     handleDateSelect: function handleDateSelect(selectInfo) {
-      var title = ''; //add input from modal component for title
+      var title = 'Event title'; //add input from modal component for title
 
-      var text = ''; // = this.message;// take text from NotesModal
+      var text = 'Event description'; // = this.message;// take text from NotesModal
 
       var calendarApi = selectInfo.view.calendar;
-      console.log("bab");
       calendarApi.unselect(); // clear date selection
 
       if (title) {
@@ -112,6 +113,7 @@ var clickData;
           allDay: selectInfo.allDay,
           text: text
         });
+        this.dateInfo = selectInfo.startStr + " to " + selectInfo.endStr;
       }
     },
     // If user presses an event, call show modal function.
@@ -143,7 +145,7 @@ var clickData;
             switch (_context.prev = _context.next) {
               case 0:
                 _context.next = 2;
-                return fetch("http://localhost:5000/events/".concat(id), {
+                return fetch("api/events/".concat(id), {
                   method: 'DELETE'
                 });
 
@@ -175,7 +177,7 @@ var clickData;
               case 0:
                 console.log('hello');
                 _context2.next = 3;
-                return fetch('http://localhost:5000/events', {
+                return fetch('api/events', {
                   method: 'POST',
                   headers: {
                     'Content-type': 'application/json'
@@ -209,9 +211,8 @@ var clickData;
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
-                console.log(clickInfo);
-                _context3.next = 3;
-                return fetch("http://localhost:5000/events/".concat(clickInfo.event.id), {
+                _context3.next = 2;
+                return fetch("api/events/".concat(clickInfo.event.id), {
                   method: 'PUT',
                   headers: {
                     'Content-type': 'application/json'
@@ -219,16 +220,16 @@ var clickData;
                   body: JSON.stringify(clickInfo)
                 });
 
-              case 3:
+              case 2:
                 res = _context3.sent;
-                _context3.next = 6;
+                _context3.next = 5;
                 return res.json();
 
-              case 6:
+              case 5:
                 data = _context3.sent;
                 _this3.events = [].concat(_toConsumableArray(_this3.events), [data]);
 
-              case 8:
+              case 7:
               case "end":
                 return _context3.stop();
             }
@@ -252,16 +253,16 @@ var clickData;
 
               case 3:
                 data = _context4.sent;
-                console.log("hello");
 
                 for (i = 0; i < data.length; i++) {
                   if (data[i].id == clickData.event.id) {
                     _this4.noteTitle = data[i].title;
                     _this4.message = data[i].extendedProps.text;
+                    _this4.dateInfo = data[i].start + " to " + data[i].end;
                   }
                 }
 
-              case 6:
+              case 5:
               case "end":
                 return _context4.stop();
             }
@@ -274,13 +275,34 @@ var clickData;
       var _this5 = this;
 
       return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5() {
+        var data, i, num;
         return regeneratorRuntime.wrap(function _callee5$(_context5) {
           while (1) {
             switch (_context5.prev = _context5.next) {
               case 0:
                 _this5.isModalVisible = false;
+                _context5.next = 3;
+                return _this5.fetchEvents();
 
-              case 1:
+              case 3:
+                data = _context5.sent;
+                console.log(data);
+                num = i;
+
+                for (i = 0; i < data.length; i++) {
+                  if (data[i].id == clickData.event.id) {
+                    num = i;
+                  }
+                }
+
+                data[num].event.title = _this5.noteTitle;
+                data[num].event.extendedProps.text = _this5.message;
+
+                _this5.updateEventToDB(data[num]);
+
+                location.reload();
+
+              case 11:
               case "end":
                 return _context5.stop();
             }
@@ -335,7 +357,7 @@ var clickData;
             switch (_context7.prev = _context7.next) {
               case 0:
                 _context7.next = 2;
-                return fetch('http://localhost:5000/events');
+                return fetch('api/events');
 
               case 2:
                 res = _context7.sent;
@@ -362,7 +384,7 @@ var clickData;
             switch (_context8.prev = _context8.next) {
               case 0:
                 _context8.next = 2;
-                return fetch("http://localhost:5000/events/".concat(id));
+                return fetch("api/events/".concat(id));
 
               case 2:
                 res = _context8.sent;
@@ -502,7 +524,7 @@ __webpack_require__.r(__webpack_exports__);
 //
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'NotesModal',
-  props: ['title', 'msg'],
+  props: ['title', 'date', 'msg'],
   data: function data() {
     return {
       noteTitle: '',
@@ -627,7 +649,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(true);
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\nh2 {\r\n  margin: 0;\r\n  font-size: 16px;\n}\nul {\r\n  margin: 0;\r\n  padding: 0 0 0 1.5em;\n}\nli {\r\n  margin: 1.5em 0;\r\n  padding: 0;\n}\nb { /* used for event dates/times */\r\n  margin-right: 3px;\n}\n.demo-app {\r\n  display: block;\r\n  min-height: 80%;\r\n  font-family: Arial, Helvetica Neue, Helvetica, sans-serif;\r\n  font-size: 14px;\n}\n.demo-app-main {\r\n  flex-grow: 1;\r\n  padding: 3em;\n}\n.fc { /* the calendar root */\r\n  max-height: 800px;\r\n  max-width: 1500px;\r\n  margin: 0 auto;\n}\r\n\r\n", "",{"version":3,"sources":["webpack://src/DemoApp.vue"],"names":[],"mappings":";AAoOA;EACA,SAAA;EACA,eAAA;AACA;AAEA;EACA,SAAA;EACA,oBAAA;AACA;AAEA;EACA,eAAA;EACA,UAAA;AACA;AAEA,IAAA,+BAAA;EACA,iBAAA;AACA;AAEA;EACA,cAAA;EACA,eAAA;EACA,yDAAA;EACA,eAAA;AACA;AAEA;EACA,YAAA;EACA,YAAA;AACA;AAEA,MAAA,sBAAA;EACA,iBAAA;EACA,iBAAA;EACA,cAAA;AACA","sourcesContent":["<script>\r\nimport FullCalendar from '@fullcalendar/vue'\r\nimport dayGridPlugin from '@fullcalendar/daygrid'\r\nimport timeGridPlugin from '@fullcalendar/timegrid'\r\nimport interactionPlugin from '@fullcalendar/interaction'\r\nimport listPlugin from '@fullcalendar/list'\r\n//import { INITIAL_EVENTS, createEventId } from './event-utils'\r\n\r\nimport NotesModal from './components/NotesModal.vue'\r\nimport Navbar from './components/Navbar.vue'\r\nlet main;\r\nlet idNum = 1;\r\nvar clickData;\r\nexport default {\r\n\r\n  components: {\r\n    FullCalendar,       // make the <FullCalendar> tag available, calendar component\r\n    NotesModal,         // Pop up notes modal, fades calendar and navbar\r\n    Navbar,            // Show navbar above calendar\r\n  },\r\n\r\n  data: function() {\r\n    return {\r\n      isModalVisible: false,    // notes modal is not visible\r\n      noteTitle: '',                // Notes title\r\n      message: '',              // Notes message\r\n      calendarOptions: {\r\n        plugins: [\r\n          dayGridPlugin,\r\n          timeGridPlugin,\r\n          interactionPlugin, // needed for dateClick\r\n          listPlugin\r\n        ],\r\n        headerToolbar: {\r\n          left: 'prev,next today',\r\n          center: 'title',\r\n          right: 'dayGridMonth, timeGridWeek, timeGridDay, listWeek'\r\n        },\r\n        initialView: 'dayGridMonth',\r\n        //initialEvents: INITIAL_EVENTS, // alternatively, use the `events` setting to fetch from a feed\r\n        events: this.getEvents,\r\n        editable: true,\r\n        selectable: true,\r\n        selectMirror: true,\r\n        dayMaxEvents: true,\r\n        weekends: true,\r\n        select: this.handleDateSelect,\r\n        eventClick: this.handleEventClick,\r\n        eventsSet: this.handleEvents,\r\n        /* you can update a remote database when these fire: */\r\n        eventAdd: this.addEventToDB,\r\n        eventChange: this.updateEventToDB, // figure out how to trigger, when closing modal\r\n                                           // with updated text information\r\n        \r\n        //eventRemove: \r\n      },\r\n      currentEvents: [],\r\n    }\r\n  },\r\n\r\n  methods: {\r\n    handleWeekendsToggle() {\r\n      this.calendarOptions.weekends = !this.calendarOptions.weekends // update a property\r\n    },\r\n\r\n    handleDateSelect(selectInfo) {\r\n      let title = ''; //add input from modal component for title\r\n      let text = '';// = this.message;// take text from NotesModal\r\n      let calendarApi = selectInfo.view.calendar\r\n      console.log(\"bab\")\r\n      calendarApi.unselect() // clear date selection\r\n      if (title) {\r\n        calendarApi.addEvent({\r\n          id: idNum++,\r\n          title,\r\n          start: selectInfo.startStr,\r\n          end: selectInfo.endStr,\r\n          allDay: selectInfo.allDay,\r\n          text\r\n        })\r\n      }\r\n    },\r\n\r\n    // If user presses an event, call show modal function.\r\n    handleEventClick(selectInfo) {\r\n      clickData = selectInfo;   // save event object, in case I have to delete it\r\n      this.showModal();\r\n    },\r\n\r\n    // function to call when delete button is pressed\r\n     handleDeleteButton() {\r\n      var clickInfo = clickData;    // retrieve event object, so I can delete it\r\n      if (confirm(`Are you sure you want to delete the event '${clickInfo.event.title}'`)) {\r\n        clickInfo.event.remove()\r\n        this.closeModal();\r\n      }\r\n      this.deleteEventFromDB(clickInfo.event.id);\r\n      idNum--;\r\n    },\r\n\r\n    // bug where it deletes based on event.id not id\r\n    async deleteEventFromDB(id){\r\n      const res = await fetch(`http://localhost:5000/events/${id}`, {\r\n        method: 'DELETE'\r\n      })\r\n\r\n      res.status === 200 ? \r\n      (this.events = this.events.filter((event) => event.id !== id)) :\r\n      alert('Error deleting event')\r\n    },\r\n\r\n    handleEvents(events) {\r\n      this.currentEvents = events\r\n    },\r\n\r\n    async addEventToDB(event) {\r\n      console.log('hello')\r\n      const res = await fetch('http://localhost:5000/events',{\r\n        method: 'POST',\r\n        headers: {\r\n          'Content-type': 'application/json',\r\n        },\r\n        body: JSON.stringify(event)\r\n      })\r\n      const data = await res.json()\r\n      this.events = [...this.events, data]\r\n    },\r\n\r\n    async updateEventToDB(clickInfo){\r\n      console.log(clickInfo)\r\n       const res = await fetch(`http://localhost:5000/events/${clickInfo.event.id}`, {\r\n        method: 'PUT',\r\n        headers: {\r\n          'Content-type': 'application/json',\r\n        },\r\n        body: JSON.stringify(clickInfo)\r\n      })\r\n      const data = await res.json()\r\n      this.events = [...this.events, data]\r\n    },\r\n\r\n    // make modal visible\r\n    async showModal() {\r\n      this.isModalVisible = true;\r\n      let data;\r\n      data = await this.getEvents();\r\n      console.log(\"hello\")\r\n      let i;\r\n      for (i = 0; i < data.length; i++)\r\n      {\r\n        if (data[i].id == clickData.event.id){\r\n          this.noteTitle = data[i].title;\r\n          this.message = data[i].extendedProps.text;\r\n        }\r\n      }\r\n    },\r\n\r\n    // close modal for taking notes\r\n    async closeModal() {\r\n      this.isModalVisible = false;\r\n    },\r\n\r\n    async getEvents(){\r\n      this.events = await this.fetchEvents();\r\n      main = [];\r\n      for(let i = 0; i < this.events.length; i++){ \r\n         main.push(this.events[i].event);\r\n         if (this.events[i].id > idNum)\r\n         {\r\n           idNum = this.events[i].id;\r\n         }\r\n      }\r\n      if (this.events.length > 0){\r\n        idNum++;\r\n      }\r\n      this.events = main;\r\n      return this.events;\r\n    },\r\n\r\n    async fetchEvents(){\r\n      const res = await fetch('http://localhost:5000/events')\r\n      const data = await res.json()\r\n      return data\r\n    },\r\n\r\n    async fetchEvent(id){\r\n      const res = await fetch(`http://localhost:5000/events/${id}`)\r\n      const data = await res.json()\r\n      return data\r\n    },\r\n  },\r\n  async created() {\r\n    this.events = await this.fetchEvents();\r\n  },\r\n}\r\n</script>\r\n\r\n<template>\r\n  <div class='demo-app'>\r\n      <NotesModal\r\n            v-show=\"isModalVisible\"\r\n            @close=\"closeModal\"\r\n            @deleteEvent=\"handleDeleteButton\"\r\n            :title = \"noteTitle\"\r\n            :msg=\"message\"\r\n            @noteTitleChanged = \"noteTitle = $event\"\r\n            @messageChanged = \"message = $event\"\r\n          />\r\n          <Navbar\r\n      v-if=\"isModalVisible == false\"\r\n       />\r\n      <div class='demo-app-main'>\r\n      <FullCalendar\r\n      v-if=\"isModalVisible == false\"\r\n      class='demo-app-calendar'\r\n      :options='calendarOptions'       \r\n      >\r\n        <template v-slot:eventContent='arg'>\r\n          <b>{{ arg.timeText }}</b>\r\n          <i>{{ arg.event.title }}</i>\r\n        </template>\r\n      </FullCalendar>\r\n      </div>\r\n  </div>\r\n</template>\r\n\r\n<style lang='css'>\r\n\r\nh2 {\r\n  margin: 0;\r\n  font-size: 16px;\r\n}\r\n\r\nul {\r\n  margin: 0;\r\n  padding: 0 0 0 1.5em;\r\n}\r\n\r\nli {\r\n  margin: 1.5em 0;\r\n  padding: 0;\r\n}\r\n\r\nb { /* used for event dates/times */\r\n  margin-right: 3px;\r\n}\r\n\r\n.demo-app {\r\n  display: block;\r\n  min-height: 80%;\r\n  font-family: Arial, Helvetica Neue, Helvetica, sans-serif;\r\n  font-size: 14px;\r\n}\r\n\r\n.demo-app-main {\r\n  flex-grow: 1;\r\n  padding: 3em;\r\n}\r\n\r\n.fc { /* the calendar root */\r\n  max-height: 800px;\r\n  max-width: 1500px;\r\n  margin: 0 auto;\r\n}\r\n\r\n</style>"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, "\nh2 {\r\n  margin: 0;\r\n  font-size: 16px;\n}\nul {\r\n  margin: 0;\r\n  padding: 0 0 0 1.5em;\n}\nli {\r\n  margin: 1.5em 0;\r\n  padding: 0;\n}\nb { /* used for event dates/times */\r\n  margin-right: 3px;\n}\n.demo-app {\r\n  display: block;\r\n  min-height: 80%;\r\n  font-family: Arial, Helvetica Neue, Helvetica, sans-serif;\r\n  font-size: 14px;\n}\n.demo-app-main {\r\n  flex-grow: 1;\r\n  padding: 3em;\n}\n.fc { /* the calendar root */\r\n  max-height: 800px;\r\n  max-width: 1500px;\r\n  margin: 0 auto;\n}\r\n\r\n", "",{"version":3,"sources":["webpack://src/DemoApp.vue"],"names":[],"mappings":";AAmPA;EACA,SAAA;EACA,eAAA;AACA;AAEA;EACA,SAAA;EACA,oBAAA;AACA;AAEA;EACA,eAAA;EACA,UAAA;AACA;AAEA,IAAA,+BAAA;EACA,iBAAA;AACA;AAEA;EACA,cAAA;EACA,eAAA;EACA,yDAAA;EACA,eAAA;AACA;AAEA;EACA,YAAA;EACA,YAAA;AACA;AAEA,MAAA,sBAAA;EACA,iBAAA;EACA,iBAAA;EACA,cAAA;AACA","sourcesContent":["<script>\r\nimport FullCalendar from '@fullcalendar/vue'\r\nimport dayGridPlugin from '@fullcalendar/daygrid'\r\nimport timeGridPlugin from '@fullcalendar/timegrid'\r\nimport interactionPlugin from '@fullcalendar/interaction'\r\nimport listPlugin from '@fullcalendar/list'\r\n//import { INITIAL_EVENTS, createEventId } from './event-utils'\r\n\r\nimport NotesModal from './components/NotesModal.vue'\r\nimport Navbar from './components/Navbar.vue'\r\nlet main;\r\nlet idNum = 1;\r\nvar clickData;\r\nexport default {\r\n\r\n  components: {\r\n    FullCalendar,       // make the <FullCalendar> tag available, calendar component\r\n    NotesModal,         // Pop up notes modal, fades calendar and navbar\r\n    Navbar,            // Show navbar above calendar\r\n  },\r\n\r\n  data: function() {\r\n    return {\r\n      isModalVisible: false,        // notes modal is not visible\r\n      noteTitle: '',                // Notes title\r\n      dateInfo: '',                 // Notes date\r\n      message: '',                  // Notes message\r\n      calendarOptions: {\r\n        plugins: [\r\n          dayGridPlugin,\r\n          timeGridPlugin,\r\n          interactionPlugin, // needed for dateClick\r\n          listPlugin\r\n        ],\r\n        headerToolbar: {\r\n          left: 'prev,next today',\r\n          center: 'title',\r\n          right: 'dayGridMonth, timeGridWeek, timeGridDay, listWeek'\r\n        },\r\n        initialView: 'dayGridMonth',\r\n        //initialEvents: INITIAL_EVENTS, // alternatively, use the `events` setting to fetch from a feed\r\n        events: this.getEvents,\r\n        editable: true,\r\n        selectable: true,\r\n        selectMirror: true,\r\n        dayMaxEvents: true,\r\n        weekends: true,\r\n        select: this.handleDateSelect,\r\n        eventClick: this.handleEventClick,\r\n        eventsSet: this.handleEvents,\r\n        /* you can update a remote database when these fire: */\r\n        eventAdd: this.addEventToDB,\r\n        eventChange: this.updateEventToDB, // figure out how to trigger, when closing modal\r\n                                           // with updated text information\r\n        \r\n        //eventRemove: \r\n      },\r\n      currentEvents: [],\r\n    }\r\n  },\r\n\r\n  methods: {\r\n    handleWeekendsToggle() {\r\n      this.calendarOptions.weekends = !this.calendarOptions.weekends // update a property\r\n    },\r\n\r\n    handleDateSelect(selectInfo) {\r\n      let title = 'Event title'; //add input from modal component for title\r\n      let text = 'Event description';// = this.message;// take text from NotesModal\r\n      let calendarApi = selectInfo.view.calendar\r\n      calendarApi.unselect() // clear date selection\r\n      if (title) {\r\n        calendarApi.addEvent({\r\n          id: idNum++,\r\n          title,\r\n          start: selectInfo.startStr,\r\n          end: selectInfo.endStr,\r\n          allDay: selectInfo.allDay,\r\n          text\r\n        })\r\n        this.dateInfo = selectInfo.startStr + \" to \" + selectInfo.endStr;\r\n      }\r\n    },\r\n\r\n    // If user presses an event, call show modal function.\r\n    handleEventClick(selectInfo) {\r\n      clickData = selectInfo;   // save event object, in case I have to delete it\r\n      this.showModal();\r\n    },\r\n\r\n    // function to call when delete button is pressed\r\n     handleDeleteButton() {\r\n      var clickInfo = clickData;    // retrieve event object, so I can delete it\r\n      if (confirm(`Are you sure you want to delete the event '${clickInfo.event.title}'`)) {\r\n        clickInfo.event.remove()\r\n        this.closeModal();\r\n      }\r\n      this.deleteEventFromDB(clickInfo.event.id);\r\n      idNum--;\r\n    },\r\n\r\n    // bug where it deletes based on event.id not id\r\n    async deleteEventFromDB(id){\r\n      const res = await fetch(`api/events/${id}`, {\r\n        method: 'DELETE'\r\n      })\r\n\r\n      res.status === 200 ? \r\n      (this.events = this.events.filter((event) => event.id !== id)) :\r\n      alert('Error deleting event')\r\n    },\r\n\r\n    handleEvents(events) {\r\n      this.currentEvents = events\r\n    },\r\n\r\n    async addEventToDB(event) {\r\n      console.log('hello')\r\n      const res = await fetch('api/events',{\r\n        method: 'POST',\r\n        headers: {\r\n          'Content-type': 'application/json',\r\n        },\r\n        body: JSON.stringify(event)\r\n      })\r\n      const data = await res.json()\r\n      this.events = [...this.events, data]\r\n    },\r\n\r\n    async updateEventToDB(clickInfo){\r\n       const res = await fetch(`api/events/${clickInfo.event.id}`, {\r\n        method: 'PUT',\r\n        headers: {\r\n          'Content-type': 'application/json',\r\n        },\r\n        body: JSON.stringify(clickInfo)\r\n      })\r\n      const data = await res.json()\r\n      this.events = [...this.events, data]\r\n    },\r\n\r\n    // make modal visible\r\n    async showModal() {\r\n      this.isModalVisible = true;\r\n      let data;\r\n      data = await this.getEvents();\r\n      let i;\r\n      for (i = 0; i < data.length; i++)\r\n      {\r\n        if (data[i].id == clickData.event.id){\r\n          this.noteTitle = data[i].title;\r\n          this.message = data[i].extendedProps.text;\r\n          this.dateInfo =  data[i].start + \" to \" + data[i].end;\r\n        }\r\n      }\r\n    },\r\n\r\n    // close modal for taking notes\r\n    async closeModal() {\r\n      this.isModalVisible = false;\r\n      let data;\r\n      data = await this.fetchEvents();\r\n      console.log(data)\r\n      let i;\r\n      let num = i;\r\n      for (i = 0; i < data.length; i++){\r\n        if(data[i].id == clickData.event.id){\r\n          num = i;\r\n        }\r\n      }\r\n      data[num].event.title = this.noteTitle;\r\n      data[num].event.extendedProps.text = this.message;\r\n      this.updateEventToDB(data[num]);\r\n      location.reload();\r\n    },\r\n\r\n    async getEvents(){\r\n      this.events = await this.fetchEvents();\r\n      main = [];\r\n      for(let i = 0; i < this.events.length; i++){ \r\n         main.push(this.events[i].event);\r\n         if (this.events[i].id > idNum)\r\n         {\r\n           idNum = this.events[i].id;\r\n         }\r\n      }\r\n      if (this.events.length > 0){\r\n        idNum++;\r\n      }\r\n      this.events = main;\r\n      return this.events;\r\n    },\r\n\r\n    async fetchEvents(){\r\n      const res = await fetch('api/events')\r\n      const data = await res.json()\r\n      return data\r\n    },\r\n\r\n    async fetchEvent(id){\r\n      const res = await fetch(`api/events/${id}`)\r\n      const data = await res.json()\r\n      return data\r\n    },\r\n  },\r\n  async created() {\r\n    this.events = await this.fetchEvents();\r\n  },\r\n}\r\n</script>\r\n\r\n<template>\r\n  <div class='demo-app'>\r\n      <NotesModal\r\n            v-show = \"isModalVisible\"\r\n            @close = \"closeModal\"\r\n            @deleteEvent = \"handleDeleteButton\"\r\n            :title = \"noteTitle\"\r\n            :date = \"dateInfo\"\r\n            :msg = \"message\"\r\n            @noteTitleChanged = \"noteTitle = $event\"\r\n            @messageChanged = \"message = $event\"\r\n          />\r\n          <Navbar\r\n      v-if=\"isModalVisible == false\"\r\n       />\r\n      <div class='demo-app-main'>\r\n      <FullCalendar\r\n      v-if=\"isModalVisible == false\"\r\n      class='demo-app-calendar'\r\n      :options='calendarOptions'       \r\n      >\r\n        <template v-slot:eventContent='arg'>\r\n          <b>{{ arg.timeText }}</b>\r\n          <i>{{ arg.event.title }}</i>\r\n        </template>\r\n      </FullCalendar>\r\n      </div>\r\n  </div>\r\n</template>\r\n\r\n<style lang='css'>\r\n\r\nh2 {\r\n  margin: 0;\r\n  font-size: 16px;\r\n}\r\n\r\nul {\r\n  margin: 0;\r\n  padding: 0 0 0 1.5em;\r\n}\r\n\r\nli {\r\n  margin: 1.5em 0;\r\n  padding: 0;\r\n}\r\n\r\nb { /* used for event dates/times */\r\n  margin-right: 3px;\r\n}\r\n\r\n.demo-app {\r\n  display: block;\r\n  min-height: 80%;\r\n  font-family: Arial, Helvetica Neue, Helvetica, sans-serif;\r\n  font-size: 14px;\r\n}\r\n\r\n.demo-app-main {\r\n  flex-grow: 1;\r\n  padding: 3em;\r\n}\r\n\r\n.fc { /* the calendar root */\r\n  max-height: 800px;\r\n  max-width: 1500px;\r\n  margin: 0 auto;\r\n}\r\n\r\n</style>"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ __webpack_exports__["default"] = (___CSS_LOADER_EXPORT___);
 
@@ -648,7 +670,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(true);
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n.navbar{\r\n  height: 40px;\r\n  width: 100%;\r\n  background: #cccccc;\n}\n.welcomeMessage{\r\n  float: left;\r\n  margin-left: 140px;\r\n  color: rgb(24, 24, 24);\r\n  margin-top: 4px;\n}\n.logout{\r\n  float: right;\r\n  width: 80px;\r\n  margin-right: 20px;\r\n  margin-top: 8px;\n}\r\n", "",{"version":3,"sources":["webpack://src/components/Navbar.vue"],"names":[],"mappings":";AA4BA;EACA,YAAA;EACA,WAAA;EACA,mBAAA;AACA;AAEA;EACA,WAAA;EACA,kBAAA;EACA,sBAAA;EACA,eAAA;AACA;AACA;EACA,YAAA;EACA,WAAA;EACA,kBAAA;EACA,eAAA;AACA","sourcesContent":["<template>\r\n    <div class = \"navbar\">\r\n        <h1 class = \"welcomeMessage\">Welcome, User</h1>\r\n        <button class = \"logout\"\r\n            type=\"button\"\r\n            @click=\"close\"                \r\n            aria-label=\"Log out button\"\r\n          >\r\n          Logout\r\n            <font-awesome-icon icon = \"sign-out-alt\" /> \r\n          </button>\r\n    </div>\r\n</template>\r\n\r\n<script>\r\n  export default {\r\n    name: 'Navbar',\r\n     methods: {\r\n      close() {\r\n        this.$emit('close');\r\n      },\r\n    },\r\n  };\r\n\r\n</script>\r\n\r\n\r\n<style>\r\n.navbar{\r\n  height: 40px;\r\n  width: 100%;\r\n  background: #cccccc;\r\n}\r\n\r\n.welcomeMessage{\r\n  float: left;\r\n  margin-left: 140px;\r\n  color: rgb(24, 24, 24);\r\n  margin-top: 4px;\r\n}\r\n.logout{\r\n  float: right;\r\n  width: 80px;\r\n  margin-right: 20px;\r\n  margin-top: 8px;\r\n}\r\n</style>"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n.navbar{\r\n  height: 40px;\r\n  width: 100%;\r\n  background: #cccccc;\n}\n.welcomeMessage{\r\n  float: left;\r\n  margin-left: 140px;\r\n  color: rgb(24, 24, 24);\r\n  margin-top: 4px;\n}\n.logout{\r\n  float: right;\r\n  width: 80px;\r\n  margin-right: 20px;\r\n  margin-top: 8px;\n}\r\n", "",{"version":3,"sources":["webpack://src/components/Navbar.vue"],"names":[],"mappings":";AA4BA;EACA,YAAA;EACA,WAAA;EACA,mBAAA;AACA;AAEA;EACA,WAAA;EACA,kBAAA;EACA,sBAAA;EACA,eAAA;AACA;AACA;EACA,YAAA;EACA,WAAA;EACA,kBAAA;EACA,eAAA;AACA","sourcesContent":["<template>\r\n    <div class = \"navbar\">\r\n        <h1 class = \"welcomeMessage\">Welcome, Jimmy De Santa</h1>\r\n        <button class = \"logout\"\r\n            type=\"button\"\r\n            @click=\"close\"                \r\n            aria-label=\"Log out button\"\r\n          >\r\n          Logout\r\n            <font-awesome-icon icon = \"sign-out-alt\" /> \r\n          </button>\r\n    </div>\r\n</template>\r\n\r\n<script>\r\n  export default {\r\n    name: 'Navbar',\r\n     methods: {\r\n      close() {\r\n        this.$emit('close');\r\n      },\r\n    },\r\n  };\r\n\r\n</script>\r\n\r\n\r\n<style>\r\n.navbar{\r\n  height: 40px;\r\n  width: 100%;\r\n  background: #cccccc;\r\n}\r\n\r\n.welcomeMessage{\r\n  float: left;\r\n  margin-left: 140px;\r\n  color: rgb(24, 24, 24);\r\n  margin-top: 4px;\r\n}\r\n.logout{\r\n  float: right;\r\n  width: 80px;\r\n  margin-right: 20px;\r\n  margin-top: 8px;\r\n}\r\n</style>"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ __webpack_exports__["default"] = (___CSS_LOADER_EXPORT___);
 
@@ -669,7 +691,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(true);
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\ntextarea{\n  height: 250px;\n  width: 350px;\n}\n.modal-backdrop {\n  position: fixed;\n  top: 0;\n  bottom: 0;\n  left: 0;\n  right: 0;\n  background-color: rgba(0, 0, 0, 0.3);\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n.modal {\n  background: #FFFFFF;\n  box-shadow: 2px 2px 20px 1px;\n  overflow-x: auto;\n  display: flex;\n  flex-direction: column;\n  height: 400px;\n  width: 400px;\n}\n.modal-header,\n.modal-footer {\n  padding: 15px;\n  display: flex;\n}\n.modal-header {\n  position: relative;\n  border-bottom: 1px solid #eeeeee;\n  color: #4AAE9B;\n  justify-content: space-between;\n}\n.modal-footer {\n  border-top: 1px solid #eeeeee;\n  flex-direction: column;\n  justify-content: flex-end;\n}\n.modal-body {\n  position: relative;\n  padding: 20px 10px;\n}\n.btn-delete {\n  position: absolute;\n  top: 0;\n  right: 0;\n  border: none;\n  /*font-size: 30px;*/\n  padding: 10px;\n  cursor: pointer;\n  font-weight: bold;\n  color: rgb(206, 49, 49);\n  background: #ffffff;\n  border: 1px solid #ff0000;\n  border-radius: 2px;\n  font-size: 1.5em;\nmargin: 5px;\n}\n.btn-close {\n  color: white;\n  background: #4AAE9B;\n  border: 1px solid #4AAE9B;\n  border-radius: 2px;\n}\n#textBox{\n  height: 250px;\n  width: 360px;\n}\n.datesInfo{\n  margin-right: 150px;\n}\n", "",{"version":3,"sources":["webpack://src/components/NotesModal.vue"],"names":[],"mappings":";AAiFA;EACA,aAAA;EACA,YAAA;AACA;AAEA;EACA,eAAA;EACA,MAAA;EACA,SAAA;EACA,OAAA;EACA,QAAA;EACA,oCAAA;EACA,aAAA;EACA,uBAAA;EACA,mBAAA;AACA;AAEA;EACA,mBAAA;EACA,4BAAA;EACA,gBAAA;EACA,aAAA;EACA,sBAAA;EACA,aAAA;EACA,YAAA;AACA;AAEA;;EAEA,aAAA;EACA,aAAA;AACA;AAEA;EACA,kBAAA;EACA,gCAAA;EACA,cAAA;EACA,8BAAA;AACA;AAEA;EACA,6BAAA;EACA,sBAAA;EACA,yBAAA;AACA;AAEA;EACA,kBAAA;EACA,kBAAA;AACA;AAEA;EACA,kBAAA;EACA,MAAA;EACA,QAAA;EACA,YAAA;EACA,mBAAA;EACA,aAAA;EACA,eAAA;EACA,iBAAA;EACA,uBAAA;EACA,mBAAA;EACA,yBAAA;EACA,kBAAA;EACA,gBAAA;AACA,WAAA;AACA;AAEA;EACA,YAAA;EACA,mBAAA;EACA,yBAAA;EACA,kBAAA;AACA;AAEA;EACA,aAAA;EACA,YAAA;AACA;AAEA;EACA,mBAAA;AACA","sourcesContent":["<template>\r\n  <transition name=\"modal-fade\">\r\n    <div class=\"modal-backdrop\">\r\n      <div class=\"modal\"\r\n        role=\"dialog\"\r\n        aria-labelledby=\"modalTitle\"\r\n        aria-describedby=\"modalDescription\"\r\n      >\r\n        <header\r\n          class=\"modal-header\"\r\n          id=\"modalTitle\"\r\n        >\r\n          <input type = \"text\" placeholder=\"edit event title\" :value=\"title\"\r\n          @input = \"changeNoteTitle\">\r\n\r\n          <p id = \"dateInfo\">howdydddddd</p>\r\n          \r\n          <button\r\n            type=\"button\"\r\n            class=\"btn-delete\"\r\n            @click=\"deleteEvent\"\r\n            aria-label=\"Delete modal\"\r\n          >\r\n            <font-awesome-icon icon = \"trash\" />\r\n          </button>\r\n        </header>\r\n\r\n        <section\r\n          class=\"modal-body\"\r\n          id=\"modalDescription\"\r\n        >\r\n          <textarea id = \"textBox\" type=\"text\" placeholder=\"add details here\" :value=\"msg\"\r\n          @input = \"changeMessage\"></textarea>\r\n        </section>\r\n\r\n        <footer class=\"modal-footer\">\r\n          <button\r\n            type=\"button\"\r\n            class=\"btn-close\"\r\n            @click=\"close\"\r\n            aria-label=\"Close modal\"\r\n          >\r\n            Close and Save Note\r\n          </button>\r\n        </footer>\r\n      </div>\r\n    </div>\r\n  </transition>\r\n</template>\r\n\r\n\r\n<script>\r\n  export default {\r\n    name: 'NotesModal',\r\n    props: ['title','msg'],\r\n    data(){\r\n      return{\r\n        noteTitle: '',\r\n        message: '',\r\n      }\r\n    },\r\n    methods: {\r\n      close() {\r\n        this.$emit('close');\r\n      },\r\n      deleteEvent(){\r\n        this.$emit('deleteEvent');\r\n      },\r\n      changeNoteTitle(event){\r\n        this.noteTitle = event.target.value;\r\n        this.$emit('noteTitleChanged', this.noteTitle);\r\n      },\r\n      changeMessage(event){\r\n        this.message = event.target.value;\r\n        this.$emit('messageChanged', this.message);\r\n      }\r\n    },\r\n  };\r\n</script>\r\n\r\n<style>\r\n  textarea{\r\n    height: 250px;\r\n    width: 350px;\r\n  }\r\n\r\n  .modal-backdrop {\r\n    position: fixed;\r\n    top: 0;\r\n    bottom: 0;\r\n    left: 0;\r\n    right: 0;\r\n    background-color: rgba(0, 0, 0, 0.3);\r\n    display: flex;\r\n    justify-content: center;\r\n    align-items: center;\r\n  }\r\n\r\n  .modal {\r\n    background: #FFFFFF;\r\n    box-shadow: 2px 2px 20px 1px;\r\n    overflow-x: auto;\r\n    display: flex;\r\n    flex-direction: column;\r\n    height: 400px;\r\n    width: 400px;\r\n  }\r\n\r\n  .modal-header,\r\n  .modal-footer {\r\n    padding: 15px;\r\n    display: flex;\r\n  }\r\n\r\n  .modal-header {\r\n    position: relative;\r\n    border-bottom: 1px solid #eeeeee;\r\n    color: #4AAE9B;\r\n    justify-content: space-between;\r\n  }\r\n\r\n  .modal-footer {\r\n    border-top: 1px solid #eeeeee;\r\n    flex-direction: column;\r\n    justify-content: flex-end;\r\n  }\r\n\r\n  .modal-body {\r\n    position: relative;\r\n    padding: 20px 10px;\r\n  }\r\n\r\n  .btn-delete {\r\n    position: absolute;\r\n    top: 0;\r\n    right: 0;\r\n    border: none;\r\n    /*font-size: 30px;*/\r\n    padding: 10px;\r\n    cursor: pointer;\r\n    font-weight: bold;\r\n    color: rgb(206, 49, 49);\r\n    background: #ffffff;\r\n    border: 1px solid #ff0000;\r\n    border-radius: 2px;\r\n    font-size: 1.5em;\r\n  margin: 5px;\r\n  }\r\n\r\n  .btn-close {\r\n    color: white;\r\n    background: #4AAE9B;\r\n    border: 1px solid #4AAE9B;\r\n    border-radius: 2px;\r\n  }\r\n\r\n  #textBox{\r\n    height: 250px;\r\n    width: 360px;\r\n  }\r\n\r\n  .datesInfo{\r\n    margin-right: 150px;\r\n  }\r\n</style>"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n.modal-backdrop {\n  position: fixed;\n  top: 0;\n  bottom: 0;\n  left: 0;\n  right: 0;\n  background-color: rgba(0, 0, 0, 0.3);\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n.modal {\n  background: #FFFFFF;\n  box-shadow: 2px 2px 20px 1px;\n  overflow-x: auto;\n  display: flex;\n  flex-direction: column;\n  height: 600px;\n  width: 600px;\n}\n.modal-header,\n.modal-footer {\n  padding: 15px;\n  display: flex;\n}\n.modal-header {\n  position: relative;\n  border-bottom: 1px solid #eeeeee;\n  color: #4AAE9B;\n  justify-content: space-between;\n}\n.modal-footer {\n  border-top: 1px solid #eeeeee;\n  flex-direction: column;\n  justify-content: flex-end;\n}\n.modal-body {\n  position: relative;\n  padding: 20px 10px;\n}\n.btn-delete {\n  position: absolute;\n  top: 0;\n  right: 0;\n  border: none;\n  /*font-size: 30px;*/\n  padding: 10px;\n  cursor: pointer;\n  font-weight: bold;\n  color: rgb(206, 49, 49);\n  background: #ffffff;\n  border: 1px solid #ff0000;\n  border-radius: 2px;\n  font-size: 1.5em;\nmargin: 5px;\n}\n.btn-close {\n  color: white;\n  background: #4AAE9B;\n  border: 1px solid #4AAE9B;\n  border-radius: 2px;\n}\n#textBox{\n  height: 440px;\n  width: 575px;\n}\n#dateInfo{\n  width: 200px;\n  margin-right: 90px;\n  margin-left: 30px;\n}\n", "",{"version":3,"sources":["webpack://src/components/NotesModal.vue"],"names":[],"mappings":";AAkFA;EACA,eAAA;EACA,MAAA;EACA,SAAA;EACA,OAAA;EACA,QAAA;EACA,oCAAA;EACA,aAAA;EACA,uBAAA;EACA,mBAAA;AACA;AAEA;EACA,mBAAA;EACA,4BAAA;EACA,gBAAA;EACA,aAAA;EACA,sBAAA;EACA,aAAA;EACA,YAAA;AACA;AAEA;;EAEA,aAAA;EACA,aAAA;AACA;AAEA;EACA,kBAAA;EACA,gCAAA;EACA,cAAA;EACA,8BAAA;AACA;AAEA;EACA,6BAAA;EACA,sBAAA;EACA,yBAAA;AACA;AAEA;EACA,kBAAA;EACA,kBAAA;AACA;AAEA;EACA,kBAAA;EACA,MAAA;EACA,QAAA;EACA,YAAA;EACA,mBAAA;EACA,aAAA;EACA,eAAA;EACA,iBAAA;EACA,uBAAA;EACA,mBAAA;EACA,yBAAA;EACA,kBAAA;EACA,gBAAA;AACA,WAAA;AACA;AAEA;EACA,YAAA;EACA,mBAAA;EACA,yBAAA;EACA,kBAAA;AACA;AAEA;EACA,aAAA;EACA,YAAA;AACA;AAEA;EACA,YAAA;EACA,kBAAA;EACA,iBAAA;AACA","sourcesContent":["<template>\r\n  <transition name=\"modal-fade\">\r\n    <div class=\"modal-backdrop\">\r\n      <div class=\"modal\"\r\n        role=\"dialog\"\r\n        aria-labelledby=\"modalTitle\"\r\n        aria-describedby=\"modalDescription\"\r\n      >\r\n        <header\r\n          class=\"modal-header\"\r\n          id=\"modalTitle\"\r\n        >\r\n          <input type = \"text\" placeholder=\"edit event title\" :value=\"title\"\r\n          @input = \"changeNoteTitle\">\r\n\r\n          <input type = \"text\" id = \"dateInfo\" :value= \"date\" readonly>\r\n          \r\n          <button\r\n            type=\"button\"\r\n            class=\"btn-delete\"\r\n            @click=\"deleteEvent\"\r\n            aria-label=\"Delete modal\"\r\n          >\r\n            <font-awesome-icon icon = \"trash\" />\r\n          </button>\r\n        </header>\r\n\r\n        <section\r\n          class=\"modal-body\"\r\n          id=\"modalDescription\"\r\n        >\r\n          <textarea id = \"textBox\" type=\"text\" placeholder=\"add details here\" :value=\"msg\"\r\n          @input = \"changeMessage\"></textarea>\r\n        </section>\r\n\r\n        <footer class=\"modal-footer\">\r\n          <button\r\n            type=\"button\"\r\n            class=\"btn-close\"\r\n            @click=\"close\"\r\n            aria-label=\"Close modal\"\r\n          >\r\n            Close and Save Note\r\n          </button>\r\n        </footer>\r\n      </div>\r\n    </div>\r\n  </transition>\r\n</template>\r\n\r\n\r\n<script>\r\n  export default {\r\n    name: 'NotesModal',\r\n    props: ['title','date','msg'],\r\n    data(){\r\n      return{\r\n        noteTitle: '',\r\n        message: '',\r\n      }\r\n    },\r\n    methods: {\r\n      close() {\r\n        this.$emit('close');\r\n      },\r\n      deleteEvent(){\r\n        this.$emit('deleteEvent');\r\n      },\r\n      changeNoteTitle(event){\r\n        this.noteTitle = event.target.value;\r\n        this.$emit('noteTitleChanged', this.noteTitle);\r\n      },\r\n      changeMessage(event){\r\n        this.message = event.target.value;\r\n        this.$emit('messageChanged', this.message);\r\n      }\r\n    },\r\n  };\r\n</script>\r\n\r\n<style>\r\n\r\n  .modal-backdrop {\r\n    position: fixed;\r\n    top: 0;\r\n    bottom: 0;\r\n    left: 0;\r\n    right: 0;\r\n    background-color: rgba(0, 0, 0, 0.3);\r\n    display: flex;\r\n    justify-content: center;\r\n    align-items: center;\r\n  }\r\n\r\n  .modal {\r\n    background: #FFFFFF;\r\n    box-shadow: 2px 2px 20px 1px;\r\n    overflow-x: auto;\r\n    display: flex;\r\n    flex-direction: column;\r\n    height: 600px;\r\n    width: 600px;\r\n  }\r\n\r\n  .modal-header,\r\n  .modal-footer {\r\n    padding: 15px;\r\n    display: flex;\r\n  }\r\n\r\n  .modal-header {\r\n    position: relative;\r\n    border-bottom: 1px solid #eeeeee;\r\n    color: #4AAE9B;\r\n    justify-content: space-between;\r\n  }\r\n\r\n  .modal-footer {\r\n    border-top: 1px solid #eeeeee;\r\n    flex-direction: column;\r\n    justify-content: flex-end;\r\n  }\r\n\r\n  .modal-body {\r\n    position: relative;\r\n    padding: 20px 10px;\r\n  }\r\n\r\n  .btn-delete {\r\n    position: absolute;\r\n    top: 0;\r\n    right: 0;\r\n    border: none;\r\n    /*font-size: 30px;*/\r\n    padding: 10px;\r\n    cursor: pointer;\r\n    font-weight: bold;\r\n    color: rgb(206, 49, 49);\r\n    background: #ffffff;\r\n    border: 1px solid #ff0000;\r\n    border-radius: 2px;\r\n    font-size: 1.5em;\r\n  margin: 5px;\r\n  }\r\n\r\n  .btn-close {\r\n    color: white;\r\n    background: #4AAE9B;\r\n    border: 1px solid #4AAE9B;\r\n    border-radius: 2px;\r\n  }\r\n\r\n  #textBox{\r\n    height: 440px;\r\n    width: 575px;\r\n  }\r\n\r\n  #dateInfo{\r\n    width: 200px;\r\n    margin-right: 90px;\r\n    margin-left: 30px;\r\n  }\r\n</style>"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ __webpack_exports__["default"] = (___CSS_LOADER_EXPORT___);
 
@@ -37081,7 +37103,7 @@ var render = function () {
             expression: "isModalVisible",
           },
         ],
-        attrs: { title: _vm.noteTitle, msg: _vm.message },
+        attrs: { title: _vm.noteTitle, date: _vm.dateInfo, msg: _vm.message },
         on: {
           close: _vm.closeModal,
           deleteEvent: _vm.handleDeleteButton,
@@ -37154,7 +37176,9 @@ var render = function () {
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
   return _c("div", { staticClass: "navbar" }, [
-    _c("h1", { staticClass: "welcomeMessage" }, [_vm._v("Welcome, User")]),
+    _c("h1", { staticClass: "welcomeMessage" }, [
+      _vm._v("Welcome, Jimmy De Santa"),
+    ]),
     _vm._v(" "),
     _c(
       "button",
@@ -37217,7 +37241,10 @@ var render = function () {
                 on: { input: _vm.changeNoteTitle },
               }),
               _vm._v(" "),
-              _c("p", { attrs: { id: "dateInfo" } }, [_vm._v("howdydddddd")]),
+              _c("input", {
+                attrs: { type: "text", id: "dateInfo", readonly: "" },
+                domProps: { value: _vm.date },
+              }),
               _vm._v(" "),
               _c(
                 "button",
