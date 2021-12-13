@@ -26,8 +26,7 @@
           class="modal-body"
           id="modalDescription"
         >
-          <input id = "textBox" type="text"
-           placeholder="add details here">
+          <input id = "textBox" type="text" placeholder="add details here">
         </section>
 
         <footer class="modal-footer">

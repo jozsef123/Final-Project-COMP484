@@ -62,7 +62,7 @@ export default {
 
     handleDateSelect(selectInfo) {
       let title = 'Event Title'; //add input from modal component for title
-      let text = 'french fires';// take text from NotesModal
+      let text = 'event text';// take text from NotesModal
       let calendarApi = selectInfo.view.calendar
       calendarApi.unselect() // clear date selection
       if (title) {
