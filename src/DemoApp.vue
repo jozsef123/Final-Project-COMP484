@@ -7,7 +7,7 @@ import listPlugin from '@fullcalendar/list'
 //import { INITIAL_EVENTS, createEventId } from './event-utils'
 
 import NotesModal from './components/NotesModal.vue'
-import Sidebar from './components/Sidebar.vue'
+import Navbar from './components/Navbar.vue'
 let main;
 let idNum = 1;
 var clickData;
@@ -15,13 +15,14 @@ export default {
 
   components: {
     FullCalendar,       // make the <FullCalendar> tag available, calendar component
-    NotesModal,         // Pop up notes modal, fades calendar and sidebar
-    Sidebar,            // Show sidebar to the left of the calendar page
+    NotesModal,         // Pop up notes modal, fades calendar and navbar
+    Navbar,            // Show navbar above calendar
   },
 
   data: function() {
     return {
       isModalVisible: false,    // is the modal for taking notes visible, no
+      message: 'hello',
       calendarOptions: {
         plugins: [
           dayGridPlugin,
@@ -62,7 +63,7 @@ export default {
 
     handleDateSelect(selectInfo) {
       let title = 'Event Title'; //add input from modal component for title
-      let text = 'event text';// take text from NotesModal
+      let text = this.message;// take text from NotesModal
       let calendarApi = selectInfo.view.calendar
       calendarApi.unselect() // clear date selection
       if (title) {
@@ -122,6 +123,7 @@ export default {
     },
 
     async updateEventToDB(clickInfo){
+      console.log(clickInfo)
        const res = await fetch(`http://localhost:5000/events/${clickInfo.event.id}`, {
         method: 'PUT',
         headers: {
@@ -140,6 +142,9 @@ export default {
 
     // close modal for taking notes
     closeModal() {
+      console.log(clickData.event)
+      //clickData.event.
+      //updateEventToDB(clickData.event);
       this.isModalVisible = false;
     },
 
@@ -184,8 +189,10 @@ export default {
             v-show="isModalVisible"
             @close="closeModal"
             @deleteEvent="handleDeleteButton"
+            :msg="message"
+            @messageChanged = "message = $event"
           />
-          <Sidebar
+          <Navbar
       v-if="isModalVisible == false"
        />
       <div class='demo-app-main'>
@@ -225,21 +232,10 @@ b { /* used for event dates/times */
 }
 
 .demo-app {
-  display: flex;
-  min-height: 100%;
+  display: block;
+  min-height: 80%;
   font-family: Arial, Helvetica Neue, Helvetica, sans-serif;
   font-size: 14px;
-}
-
-.demo-app-sidebar {
-  width: 300px;
-  line-height: 1.5;
-  background: #eaf9ff;
-  border-right: 1px solid #d3e2e8;
-}
-
-.demo-app-sidebar-section {
-  padding: 2em;
 }
 
 .demo-app-main {
@@ -248,7 +244,8 @@ b { /* used for event dates/times */
 }
 
 .fc { /* the calendar root */
-  max-width: 1100px;
+  max-height: 800px;
+  max-width: 1500px;
   margin: 0 auto;
 }
 

@@ -10,7 +10,7 @@
           class="modal-header"
           id="modalTitle"
         >
-          <input v-model="message" placeholder="edit event title">
+          <input placeholder="edit event title">
           
           <button
             type="button"
@@ -26,7 +26,8 @@
           class="modal-body"
           id="modalDescription"
         >
-          <input id = "textBox" type="text" placeholder="add details here">
+          <textarea id = "textBox" type="text" placeholder="add details here" :value="msg"
+          @input = "changeMessage"></textarea>
         </section>
 
         <footer class="modal-footer">
@@ -49,6 +50,12 @@
 import FullCalendar from '@fullcalendar/vue/dist/FullCalendar';
   export default {
     name: 'NotesModal',
+    props: ['msg'],
+    data(){
+      return{
+        message: '',
+      }
+    },
     methods: {
       close() {
         this.$emit('close');
@@ -56,6 +63,10 @@ import FullCalendar from '@fullcalendar/vue/dist/FullCalendar';
       deleteEvent(){
         this.$emit('deleteEvent');
       },
+      changeMessage(event){
+        this.message = event.target.value;
+        this.$emit('messageChanged', this.message);
+      }
     },
   };
 </script>
@@ -134,5 +145,10 @@ import FullCalendar from '@fullcalendar/vue/dist/FullCalendar';
     background: #4AAE9B;
     border: 1px solid #4AAE9B;
     border-radius: 2px;
+  }
+
+  #textBox{
+    height: 250px;
+    width: 360px;
   }
 </style>
