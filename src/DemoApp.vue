@@ -21,7 +21,9 @@ export default {
 
   data: function() {
     return {
-      isModalVisible: false,    // is the modal for taking notes visible, no
+      isModalVisible: false,    // notes modal is not visible
+      noteTitle: '',                // Notes title
+      message: '',              // Notes message
       calendarOptions: {
         plugins: [
           dayGridPlugin,
@@ -62,7 +64,7 @@ export default {
     },
 
     handleDateSelect(selectInfo) {
-      let title = 'Event Title'; //add input from modal component for title
+      let title = ''; //add input from modal component for title
       let text = '';// = this.message;// take text from NotesModal
       let calendarApi = selectInfo.view.calendar
       calendarApi.unselect() // clear date selection
@@ -136,13 +138,35 @@ export default {
     },
 
     // make modal visible
-    showModal() {
+    async showModal() {
       this.isModalVisible = true;
+      let data;
+      data = await this.getEvents();
+      let i;
+      for (i = 0; i < data.length; i++)
+      {
+        if (data[i].id == clickData.event.id){
+          this.noteTitle = data[i].title;
+          this.message = data[i].extendedProps.text;
+        }
+      }
     },
 
     // close modal for taking notes
     async closeModal() {
       this.isModalVisible = false;
+      let data;
+      data = await this.getEvents();
+      let i;
+      for (i = 0; i < data.length; i++)
+      {
+        if (data[i].id == clickData.event.id){
+          data[i].title = this.message;
+          data[i].extendedProps.text = this.message;
+          this.deleteEventFromDB(data[i].id);
+          this.addEventToDB(data[i]);
+        }
+      }
     },
 
     async getEvents(){
@@ -186,7 +210,9 @@ export default {
             v-show="isModalVisible"
             @close="closeModal"
             @deleteEvent="handleDeleteButton"
+            :title = "noteTitle"
             :msg="message"
+            @noteTitleChanged = "noteTitle = $event"
             @messageChanged = "message = $event"
           />
           <Navbar
