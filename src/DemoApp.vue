@@ -47,7 +47,8 @@ export default {
         eventsSet: this.handleEvents,
         /* you can update a remote database when these fire: */
         eventAdd: this.addEventToDB,
-        eventChange: this.updateEventToDB,
+        eventChange: this.updateEventToDB, // figure out how to trigger, when closing modal
+                                           // with updated text information
         
         //eventRemove: 
       },
@@ -122,6 +123,7 @@ export default {
     },
 
     async updateEventToDB(clickInfo){
+      console.log(clickInfo)
        const res = await fetch(`http://localhost:5000/events/${clickInfo.event.id}`, {
         method: 'PUT',
         headers: {
