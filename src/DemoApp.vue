@@ -113,6 +113,7 @@ export default {
     },
 
     async addEventToDB(event) {
+      console.log('hello')
       const res = await fetch('http://localhost:5000/events',{
         method: 'POST',
         headers: {
@@ -142,6 +143,7 @@ export default {
       this.isModalVisible = true;
       let data;
       data = await this.getEvents();
+      console.log("hello")
       let i;
       for (i = 0; i < data.length; i++)
       {
@@ -155,18 +157,6 @@ export default {
     // close modal for taking notes
     async closeModal() {
       this.isModalVisible = false;
-      let data;
-      data = await this.getEvents();
-      let i;
-      for (i = 0; i < data.length; i++)
-      {
-        if (data[i].id == clickData.event.id){
-          data[i].title = this.message;
-          data[i].extendedProps.text = this.message;
-          this.deleteEventFromDB(data[i].id);
-          this.addEventToDB(data[i]);
-        }
-      }
     },
 
     async getEvents(){

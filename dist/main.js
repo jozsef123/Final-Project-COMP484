@@ -1,36 +1,6 @@
 /******/ (function() { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./src/event-utils.js":
-/*!****************************!*\
-  !*** ./src/event-utils.js ***!
-  \****************************/
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "INITIAL_EVENTS": function() { return /* binding */ INITIAL_EVENTS; },
-/* harmony export */   "createEventId": function() { return /* binding */ createEventId; }
-/* harmony export */ });
-var eventGuid = 0;
-var todayStr = new Date().toISOString().replace(/T.*$/, ''); // YYYY-MM-DD of today
-
-var INITIAL_EVENTS = [{
-  id: createEventId(),
-  title: 'All-day event',
-  start: todayStr
-}, {
-  id: createEventId(),
-  title: 'Timed event',
-  start: todayStr + 'T12:00:00'
-}];
-function createEventId() {
-  return String(eventGuid++);
-}
-
-/***/ }),
-
 /***/ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-3[0].rules[0].use!./node_modules/vue-loader/lib/index.js??vue-loader-options!./node_modules/source-map-loader/dist/cjs.js!./src/DemoApp.vue?vue&type=script&lang=js&":
 /*!************************************************************************************************************************************************************************************************************************************!*\
   !*** ./node_modules/babel-loader/lib/index.js??clonedRuleSet-3[0].rules[0].use!./node_modules/vue-loader/lib/index.js??vue-loader-options!./node_modules/source-map-loader/dist/cjs.js!./src/DemoApp.vue?vue&type=script&lang=js& ***!
@@ -44,9 +14,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _fullcalendar_timegrid__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @fullcalendar/timegrid */ "./node_modules/@fullcalendar/timegrid/main.js");
 /* harmony import */ var _fullcalendar_interaction__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @fullcalendar/interaction */ "./node_modules/@fullcalendar/interaction/main.js");
 /* harmony import */ var _fullcalendar_list__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @fullcalendar/list */ "./node_modules/@fullcalendar/list/main.js");
-/* harmony import */ var _event_utils__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./event-utils */ "./src/event-utils.js");
-/* harmony import */ var _components_NotesModal_vue__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./components/NotesModal.vue */ "./src/components/NotesModal.vue");
-/* harmony import */ var _components_Sidebar_vue__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./components/Sidebar.vue */ "./src/components/Sidebar.vue");
+/* harmony import */ var _components_NotesModal_vue__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./components/NotesModal.vue */ "./src/components/NotesModal.vue");
+/* harmony import */ var _components_Navbar_vue__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./components/Navbar.vue */ "./src/components/Navbar.vue");
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
 
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -67,24 +36,30 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
+ //import { INITIAL_EVENTS, createEventId } from './event-utils'
 
 
 
-
+var main;
+var idNum = 1;
 var clickData;
 /* harmony default export */ __webpack_exports__["default"] = ({
   components: {
     FullCalendar: _fullcalendar_vue__WEBPACK_IMPORTED_MODULE_0__["default"],
     // make the <FullCalendar> tag available, calendar component
-    NotesModal: _components_NotesModal_vue__WEBPACK_IMPORTED_MODULE_6__["default"],
-    // Pop up notes modal, fades calendar and sidebar
-    Sidebar: _components_Sidebar_vue__WEBPACK_IMPORTED_MODULE_7__["default"] // Show sidebar to the left of the calendar page
+    NotesModal: _components_NotesModal_vue__WEBPACK_IMPORTED_MODULE_5__["default"],
+    // Pop up notes modal, fades calendar and navbar
+    Navbar: _components_Navbar_vue__WEBPACK_IMPORTED_MODULE_6__["default"] // Show navbar above calendar
 
   },
   data: function data() {
     return {
       isModalVisible: false,
-      // is the modal for taking notes visible, no
+      // notes modal is not visible
+      noteTitle: '',
+      // Notes title
+      message: '',
+      // Notes message
       calendarOptions: {
         plugins: [_fullcalendar_daygrid__WEBPACK_IMPORTED_MODULE_1__["default"], _fullcalendar_timegrid__WEBPACK_IMPORTED_MODULE_2__["default"], _fullcalendar_interaction__WEBPACK_IMPORTED_MODULE_3__["default"], // needed for dateClick
         _fullcalendar_list__WEBPACK_IMPORTED_MODULE_4__["default"]],
@@ -95,6 +70,7 @@ var clickData;
         },
         initialView: 'dayGridMonth',
         //initialEvents: INITIAL_EVENTS, // alternatively, use the `events` setting to fetch from a feed
+        events: this.getEvents,
         editable: true,
         selectable: true,
         selectMirror: true,
@@ -105,11 +81,10 @@ var clickData;
         eventsSet: this.handleEvents,
 
         /* you can update a remote database when these fire: */
-        eventAdd: this.addEventToDB
-        /*
-        eventChange:
-        */
-        //eventRemove: this.deleteEventFromDB,
+        eventAdd: this.addEventToDB,
+        eventChange: this.updateEventToDB // figure out how to trigger, when closing modal
+        // with updated text information
+        //eventRemove: 
 
       },
       currentEvents: []
@@ -120,16 +95,17 @@ var clickData;
       this.calendarOptions.weekends = !this.calendarOptions.weekends; // update a property
     },
     handleDateSelect: function handleDateSelect(selectInfo) {
-      var title = 'Event Title'; //add input from modal component for title
+      var title = ''; //add input from modal component for title
 
-      var text = 'french fires'; // take text from NotesModal
+      var text = ''; // = this.message;// take text from NotesModal
 
       var calendarApi = selectInfo.view.calendar;
+      console.log("bab");
       calendarApi.unselect(); // clear date selection
 
       if (title) {
         calendarApi.addEvent({
-          id: (0,_event_utils__WEBPACK_IMPORTED_MODULE_5__.createEventId)(),
+          id: idNum++,
           title: title,
           start: selectInfo.startStr,
           end: selectInfo.endStr,
@@ -140,8 +116,9 @@ var clickData;
     },
     // If user presses an event, call show modal function.
     handleEventClick: function handleEventClick(selectInfo) {
-      this.showModal();
       clickData = selectInfo; // save event object, in case I have to delete it
+
+      this.showModal();
     },
     // function to call when delete button is pressed
     handleDeleteButton: function handleDeleteButton() {
@@ -152,8 +129,10 @@ var clickData;
         this.closeModal();
       }
 
-      this.deleteEventFromDB(clickInfo.event.id - 1);
+      this.deleteEventFromDB(clickInfo.event.id);
+      idNum--;
     },
+    // bug where it deletes based on event.id not id
     deleteEventFromDB: function deleteEventFromDB(id) {
       var _this = this;
 
@@ -182,8 +161,8 @@ var clickData;
         }, _callee);
       }))();
     },
-    handleEvents: function handleEvents(events1) {
-      this.currentEvents = events1;
+    handleEvents: function handleEvents(events) {
+      this.currentEvents = events;
     },
     addEventToDB: function addEventToDB(event) {
       var _this2 = this;
@@ -194,7 +173,8 @@ var clickData;
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                _context2.next = 2;
+                console.log('hello');
+                _context2.next = 3;
                 return fetch('http://localhost:5000/events', {
                   method: 'POST',
                   headers: {
@@ -203,16 +183,16 @@ var clickData;
                   body: JSON.stringify(event)
                 });
 
-              case 2:
+              case 3:
                 res = _context2.sent;
-                _context2.next = 5;
+                _context2.next = 6;
                 return res.json();
 
-              case 5:
+              case 6:
                 data = _context2.sent;
                 _this2.events = [].concat(_toConsumableArray(_this2.events), [data]);
 
-              case 7:
+              case 8:
               case "end":
                 return _context2.stop();
             }
@@ -220,34 +200,35 @@ var clickData;
         }, _callee2);
       }))();
     },
-    // make modal visible
-    showModal: function showModal() {
-      this.isModalVisible = true;
-    },
-    // close modal for taking notes
-    closeModal: function closeModal() {
-      this.isModalVisible = false;
-    },
-    fetchEvents: function fetchEvents() {
+    updateEventToDB: function updateEventToDB(clickInfo) {
+      var _this3 = this;
+
       return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
         var res, data;
         return regeneratorRuntime.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
-                _context3.next = 2;
-                return fetch('http://localhost:5000/events');
+                console.log(clickInfo);
+                _context3.next = 3;
+                return fetch("http://localhost:5000/events/".concat(clickInfo.event.id), {
+                  method: 'PUT',
+                  headers: {
+                    'Content-type': 'application/json'
+                  },
+                  body: JSON.stringify(clickInfo)
+                });
 
-              case 2:
+              case 3:
                 res = _context3.sent;
-                _context3.next = 5;
+                _context3.next = 6;
                 return res.json();
 
-              case 5:
+              case 6:
                 data = _context3.sent;
-                return _context3.abrupt("return", data);
+                _this3.events = [].concat(_toConsumableArray(_this3.events), [data]);
 
-              case 7:
+              case 8:
               case "end":
                 return _context3.stop();
             }
@@ -255,55 +236,206 @@ var clickData;
         }, _callee3);
       }))();
     },
-    fetchEvent: function fetchEvent(id) {
+    // make modal visible
+    showModal: function showModal() {
+      var _this4 = this;
+
       return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
-        var res, data;
+        var data, i;
         return regeneratorRuntime.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
-                _context4.next = 2;
-                return fetch("http://localhost:5000/events/events/".concat(id));
+                _this4.isModalVisible = true;
+                _context4.next = 3;
+                return _this4.getEvents();
 
-              case 2:
-                res = _context4.sent;
-                _context4.next = 5;
-                return res.json();
-
-              case 5:
+              case 3:
                 data = _context4.sent;
-                return _context4.abrupt("return", data);
+                console.log("hello");
 
-              case 7:
+                for (i = 0; i < data.length; i++) {
+                  if (data[i].id == clickData.event.id) {
+                    _this4.noteTitle = data[i].title;
+                    _this4.message = data[i].extendedProps.text;
+                  }
+                }
+
+              case 6:
               case "end":
                 return _context4.stop();
             }
           }
         }, _callee4);
       }))();
+    },
+    // close modal for taking notes
+    closeModal: function closeModal() {
+      var _this5 = this;
+
+      return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5() {
+        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                _this5.isModalVisible = false;
+
+              case 1:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5);
+      }))();
+    },
+    getEvents: function getEvents() {
+      var _this6 = this;
+
+      return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6() {
+        var i;
+        return regeneratorRuntime.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                _context6.next = 2;
+                return _this6.fetchEvents();
+
+              case 2:
+                _this6.events = _context6.sent;
+                main = [];
+
+                for (i = 0; i < _this6.events.length; i++) {
+                  main.push(_this6.events[i].event);
+
+                  if (_this6.events[i].id > idNum) {
+                    idNum = _this6.events[i].id;
+                  }
+                }
+
+                if (_this6.events.length > 0) {
+                  idNum++;
+                }
+
+                _this6.events = main;
+                return _context6.abrupt("return", _this6.events);
+
+              case 8:
+              case "end":
+                return _context6.stop();
+            }
+          }
+        }, _callee6);
+      }))();
+    },
+    fetchEvents: function fetchEvents() {
+      return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7() {
+        var res, data;
+        return regeneratorRuntime.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                _context7.next = 2;
+                return fetch('http://localhost:5000/events');
+
+              case 2:
+                res = _context7.sent;
+                _context7.next = 5;
+                return res.json();
+
+              case 5:
+                data = _context7.sent;
+                return _context7.abrupt("return", data);
+
+              case 7:
+              case "end":
+                return _context7.stop();
+            }
+          }
+        }, _callee7);
+      }))();
+    },
+    fetchEvent: function fetchEvent(id) {
+      return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8() {
+        var res, data;
+        return regeneratorRuntime.wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                _context8.next = 2;
+                return fetch("http://localhost:5000/events/".concat(id));
+
+              case 2:
+                res = _context8.sent;
+                _context8.next = 5;
+                return res.json();
+
+              case 5:
+                data = _context8.sent;
+                return _context8.abrupt("return", data);
+
+              case 7:
+              case "end":
+                return _context8.stop();
+            }
+          }
+        }, _callee8);
+      }))();
     }
   },
   created: function created() {
-    var _this3 = this;
+    var _this7 = this;
 
-    return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5() {
-      return regeneratorRuntime.wrap(function _callee5$(_context5) {
+    return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9() {
+      return regeneratorRuntime.wrap(function _callee9$(_context9) {
         while (1) {
-          switch (_context5.prev = _context5.next) {
+          switch (_context9.prev = _context9.next) {
             case 0:
-              _context5.next = 2;
-              return _this3.fetchEvents();
+              _context9.next = 2;
+              return _this7.fetchEvents();
 
             case 2:
-              _this3.events = _context5.sent;
+              _this7.events = _context9.sent;
 
             case 3:
             case "end":
-              return _context5.stop();
+              return _context9.stop();
           }
         }
-      }, _callee5);
+      }, _callee9);
     }))();
+  }
+});
+
+/***/ }),
+
+/***/ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-3[0].rules[0].use!./node_modules/vue-loader/lib/index.js??vue-loader-options!./node_modules/source-map-loader/dist/cjs.js!./src/components/Navbar.vue?vue&type=script&lang=js&":
+/*!**********************************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/babel-loader/lib/index.js??clonedRuleSet-3[0].rules[0].use!./node_modules/vue-loader/lib/index.js??vue-loader-options!./node_modules/source-map-loader/dist/cjs.js!./src/components/Navbar.vue?vue&type=script&lang=js& ***!
+  \**********************************************************************************************************************************************************************************************************************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+/* harmony default export */ __webpack_exports__["default"] = ({
+  name: 'Navbar',
+  methods: {
+    close: function close() {
+      this.$emit('close');
+    }
   }
 });
 
@@ -317,7 +449,6 @@ var clickData;
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _fullcalendar_vue_dist_FullCalendar__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @fullcalendar/vue/dist/FullCalendar */ "./node_modules/@fullcalendar/vue/dist/FullCalendar.js");
 //
 //
 //
@@ -367,11 +498,16 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'NotesModal',
-  props: {
-    deleteButton: Boolean
+  props: ['title', 'msg'],
+  data: function data() {
+    return {
+      noteTitle: '',
+      message: ''
+    };
   },
   methods: {
     close: function close() {
@@ -379,39 +515,14 @@ __webpack_require__.r(__webpack_exports__);
     },
     deleteEvent: function deleteEvent() {
       this.$emit('deleteEvent');
-    }
-  }
-});
-
-/***/ }),
-
-/***/ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-3[0].rules[0].use!./node_modules/vue-loader/lib/index.js??vue-loader-options!./node_modules/source-map-loader/dist/cjs.js!./src/components/Sidebar.vue?vue&type=script&lang=js&":
-/*!***********************************************************************************************************************************************************************************************************************************************!*\
-  !*** ./node_modules/babel-loader/lib/index.js??clonedRuleSet-3[0].rules[0].use!./node_modules/vue-loader/lib/index.js??vue-loader-options!./node_modules/source-map-loader/dist/cjs.js!./src/components/Sidebar.vue?vue&type=script&lang=js& ***!
-  \***********************************************************************************************************************************************************************************************************************************************/
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-/* harmony default export */ __webpack_exports__["default"] = ({
-  name: 'Sidebar',
-  methods: {
-    close: function close() {
-      this.$emit('close');
+    },
+    changeNoteTitle: function changeNoteTitle(event) {
+      this.noteTitle = event.target.value;
+      this.$emit('noteTitleChanged', this.noteTitle);
+    },
+    changeMessage: function changeMessage(event) {
+      this.message = event.target.value;
+      this.$emit('messageChanged', this.message);
     }
   }
 });
@@ -516,7 +627,28 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(true);
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\nh2 {\n  margin: 0;\n  font-size: 16px;\n}\nul {\n  margin: 0;\n  padding: 0 0 0 1.5em;\n}\nli {\n  margin: 1.5em 0;\n  padding: 0;\n}\nb { /* used for event dates/times */\n  margin-right: 3px;\n}\n.demo-app {\n  display: flex;\n  min-height: 100%;\n  font-family: Arial, Helvetica Neue, Helvetica, sans-serif;\n  font-size: 14px;\n}\n.demo-app-sidebar {\n  width: 300px;\n  line-height: 1.5;\n  background: #eaf9ff;\n  border-right: 1px solid #d3e2e8;\n}\n.demo-app-sidebar-section {\n  padding: 2em;\n}\n.demo-app-main {\n  flex-grow: 1;\n  padding: 3em;\n}\n.fc { /* the calendar root */\n  max-width: 1100px;\n  margin: 0 auto;\n}\n\n", "",{"version":3,"sources":["webpack://src/DemoApp.vue"],"names":[],"mappings":";AA+KA;EACA,SAAA;EACA,eAAA;AACA;AAEA;EACA,SAAA;EACA,oBAAA;AACA;AAEA;EACA,eAAA;EACA,UAAA;AACA;AAEA,IAAA,+BAAA;EACA,iBAAA;AACA;AAEA;EACA,aAAA;EACA,gBAAA;EACA,yDAAA;EACA,eAAA;AACA;AAEA;EACA,YAAA;EACA,gBAAA;EACA,mBAAA;EACA,+BAAA;AACA;AAEA;EACA,YAAA;AACA;AAEA;EACA,YAAA;EACA,YAAA;AACA;AAEA,MAAA,sBAAA;EACA,iBAAA;EACA,cAAA;AACA","sourcesContent":["<script>\nimport FullCalendar from '@fullcalendar/vue'\nimport dayGridPlugin from '@fullcalendar/daygrid'\nimport timeGridPlugin from '@fullcalendar/timegrid'\nimport interactionPlugin from '@fullcalendar/interaction'\nimport listPlugin from '@fullcalendar/list'\nimport { INITIAL_EVENTS, createEventId } from './event-utils'\n\nimport NotesModal from './components/NotesModal.vue'\nimport Sidebar from './components/Sidebar.vue'\n\nvar clickData;\nexport default {\n\n  components: {\n    FullCalendar,       // make the <FullCalendar> tag available, calendar component\n    NotesModal,         // Pop up notes modal, fades calendar and sidebar\n    Sidebar,            // Show sidebar to the left of the calendar page\n  },\n\n  data: function() {\n    return {\n      isModalVisible: false,    // is the modal for taking notes visible, no\n      calendarOptions: {\n        plugins: [\n          dayGridPlugin,\n          timeGridPlugin,\n          interactionPlugin, // needed for dateClick\n          listPlugin\n        ],\n        headerToolbar: {\n          left: 'prev,next today',\n          center: 'title',\n          right: 'dayGridMonth, timeGridWeek, timeGridDay, listWeek'\n        },\n        initialView: 'dayGridMonth',\n        //initialEvents: INITIAL_EVENTS, // alternatively, use the `events` setting to fetch from a feed\n        editable: true,\n        selectable: true,\n        selectMirror: true,\n        dayMaxEvents: true,\n        weekends: true,\n        select: this.handleDateSelect,\n        eventClick: this.handleEventClick,\n        eventsSet: this.handleEvents,\n        /* you can update a remote database when these fire: */\n        eventAdd: this.addEventToDB,\n        /*\n        eventChange:\n        */\n        //eventRemove: this.deleteEventFromDB,\n      },\n      currentEvents: [],\n    }\n  },\n\n  methods: {\n\n    handleWeekendsToggle() {\n      this.calendarOptions.weekends = !this.calendarOptions.weekends // update a property\n    },\n\n    handleDateSelect(selectInfo) {\n      let title = 'Event Title'; //add input from modal component for title\n      let text = 'french fires';// take text from NotesModal\n      let calendarApi = selectInfo.view.calendar\n      calendarApi.unselect() // clear date selection\n      if (title) {\n        calendarApi.addEvent({\n          id: createEventId(),\n          title,\n          start: selectInfo.startStr,\n          end: selectInfo.endStr,\n          allDay: selectInfo.allDay,\n          text\n        })\n      }\n    },\n\n    // If user presses an event, call show modal function.\n    handleEventClick(selectInfo) {\n      this.showModal();\n      clickData = selectInfo;   // save event object, in case I have to delete it\n    },\n\n    // function to call when delete button is pressed\n     handleDeleteButton() {\n      var clickInfo = clickData;    // retrieve event object, so I can delete it\n      if (confirm(`Are you sure you want to delete the event '${clickInfo.event.title}'`)) {\n        clickInfo.event.remove()\n        this.closeModal();\n      }\n      this.deleteEventFromDB(clickInfo.event.id - 1);\n    },\n\n    async deleteEventFromDB(id){\n      const res = await fetch(`http://localhost:5000/events/${id}`, {\n        method: 'DELETE'\n      })\n\n      res.status === 200 ? \n      (this.events = this.events.filter((event) => event.id !== id)) :\n      alert('Error deleting event')\n    },\n\n\n    handleEvents(events1) {\n      this.currentEvents = events1\n    },\n\n    async addEventToDB(event) {\n      const res = await fetch('http://localhost:5000/events',{\n        method: 'POST',\n        headers: {\n          'Content-type': 'application/json',\n        },\n        body: JSON.stringify(event)\n      })\n      const data = await res.json()\n      this.events = [...this.events, data]\n    },\n\n    // make modal visible\n    showModal() {\n      this.isModalVisible = true;\n    },\n\n    // close modal for taking notes\n    closeModal() {\n      this.isModalVisible = false;\n    },\n    async fetchEvents(){\n      const res = await fetch('http://localhost:5000/events')\n      const data = await res.json()\n      return data\n    },\n    async fetchEvent(id){\n      const res = await fetch(`http://localhost:5000/events/events/${id}`)\n      const data = await res.json()\n      return data\n    }\n  },\n  async created() {\n    this.events = await this.fetchEvents()\n  },\n}\n</script>\n\n<template>\n  <div class='demo-app'>\n      <NotesModal\n            v-show=\"isModalVisible\"\n            @close=\"closeModal\"\n            @deleteEvent=\"handleDeleteButton\"\n          />\n          <Sidebar\n      v-if=\"isModalVisible == false\"\n       />\n      <div class='demo-app-main'>\n      <FullCalendar\n      v-if=\"isModalVisible == false\"\n      class='demo-app-calendar'\n      :options='calendarOptions'       \n      >\n        <template v-slot:eventContent='arg'>\n          <b>{{ arg.timeText }}</b>\n          <i>{{ arg.event.title }}</i>\n        </template>\n      </FullCalendar>\n      </div>\n  </div>\n</template>\n\n<style lang='css'>\n\nh2 {\n  margin: 0;\n  font-size: 16px;\n}\n\nul {\n  margin: 0;\n  padding: 0 0 0 1.5em;\n}\n\nli {\n  margin: 1.5em 0;\n  padding: 0;\n}\n\nb { /* used for event dates/times */\n  margin-right: 3px;\n}\n\n.demo-app {\n  display: flex;\n  min-height: 100%;\n  font-family: Arial, Helvetica Neue, Helvetica, sans-serif;\n  font-size: 14px;\n}\n\n.demo-app-sidebar {\n  width: 300px;\n  line-height: 1.5;\n  background: #eaf9ff;\n  border-right: 1px solid #d3e2e8;\n}\n\n.demo-app-sidebar-section {\n  padding: 2em;\n}\n\n.demo-app-main {\n  flex-grow: 1;\n  padding: 3em;\n}\n\n.fc { /* the calendar root */\n  max-width: 1100px;\n  margin: 0 auto;\n}\n\n</style>\n"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, "\nh2 {\r\n  margin: 0;\r\n  font-size: 16px;\n}\nul {\r\n  margin: 0;\r\n  padding: 0 0 0 1.5em;\n}\nli {\r\n  margin: 1.5em 0;\r\n  padding: 0;\n}\nb { /* used for event dates/times */\r\n  margin-right: 3px;\n}\n.demo-app {\r\n  display: block;\r\n  min-height: 80%;\r\n  font-family: Arial, Helvetica Neue, Helvetica, sans-serif;\r\n  font-size: 14px;\n}\n.demo-app-main {\r\n  flex-grow: 1;\r\n  padding: 3em;\n}\n.fc { /* the calendar root */\r\n  max-height: 800px;\r\n  max-width: 1500px;\r\n  margin: 0 auto;\n}\r\n\r\n", "",{"version":3,"sources":["webpack://src/DemoApp.vue"],"names":[],"mappings":";AAoOA;EACA,SAAA;EACA,eAAA;AACA;AAEA;EACA,SAAA;EACA,oBAAA;AACA;AAEA;EACA,eAAA;EACA,UAAA;AACA;AAEA,IAAA,+BAAA;EACA,iBAAA;AACA;AAEA;EACA,cAAA;EACA,eAAA;EACA,yDAAA;EACA,eAAA;AACA;AAEA;EACA,YAAA;EACA,YAAA;AACA;AAEA,MAAA,sBAAA;EACA,iBAAA;EACA,iBAAA;EACA,cAAA;AACA","sourcesContent":["<script>\r\nimport FullCalendar from '@fullcalendar/vue'\r\nimport dayGridPlugin from '@fullcalendar/daygrid'\r\nimport timeGridPlugin from '@fullcalendar/timegrid'\r\nimport interactionPlugin from '@fullcalendar/interaction'\r\nimport listPlugin from '@fullcalendar/list'\r\n//import { INITIAL_EVENTS, createEventId } from './event-utils'\r\n\r\nimport NotesModal from './components/NotesModal.vue'\r\nimport Navbar from './components/Navbar.vue'\r\nlet main;\r\nlet idNum = 1;\r\nvar clickData;\r\nexport default {\r\n\r\n  components: {\r\n    FullCalendar,       // make the <FullCalendar> tag available, calendar component\r\n    NotesModal,         // Pop up notes modal, fades calendar and navbar\r\n    Navbar,            // Show navbar above calendar\r\n  },\r\n\r\n  data: function() {\r\n    return {\r\n      isModalVisible: false,    // notes modal is not visible\r\n      noteTitle: '',                // Notes title\r\n      message: '',              // Notes message\r\n      calendarOptions: {\r\n        plugins: [\r\n          dayGridPlugin,\r\n          timeGridPlugin,\r\n          interactionPlugin, // needed for dateClick\r\n          listPlugin\r\n        ],\r\n        headerToolbar: {\r\n          left: 'prev,next today',\r\n          center: 'title',\r\n          right: 'dayGridMonth, timeGridWeek, timeGridDay, listWeek'\r\n        },\r\n        initialView: 'dayGridMonth',\r\n        //initialEvents: INITIAL_EVENTS, // alternatively, use the `events` setting to fetch from a feed\r\n        events: this.getEvents,\r\n        editable: true,\r\n        selectable: true,\r\n        selectMirror: true,\r\n        dayMaxEvents: true,\r\n        weekends: true,\r\n        select: this.handleDateSelect,\r\n        eventClick: this.handleEventClick,\r\n        eventsSet: this.handleEvents,\r\n        /* you can update a remote database when these fire: */\r\n        eventAdd: this.addEventToDB,\r\n        eventChange: this.updateEventToDB, // figure out how to trigger, when closing modal\r\n                                           // with updated text information\r\n        \r\n        //eventRemove: \r\n      },\r\n      currentEvents: [],\r\n    }\r\n  },\r\n\r\n  methods: {\r\n    handleWeekendsToggle() {\r\n      this.calendarOptions.weekends = !this.calendarOptions.weekends // update a property\r\n    },\r\n\r\n    handleDateSelect(selectInfo) {\r\n      let title = ''; //add input from modal component for title\r\n      let text = '';// = this.message;// take text from NotesModal\r\n      let calendarApi = selectInfo.view.calendar\r\n      console.log(\"bab\")\r\n      calendarApi.unselect() // clear date selection\r\n      if (title) {\r\n        calendarApi.addEvent({\r\n          id: idNum++,\r\n          title,\r\n          start: selectInfo.startStr,\r\n          end: selectInfo.endStr,\r\n          allDay: selectInfo.allDay,\r\n          text\r\n        })\r\n      }\r\n    },\r\n\r\n    // If user presses an event, call show modal function.\r\n    handleEventClick(selectInfo) {\r\n      clickData = selectInfo;   // save event object, in case I have to delete it\r\n      this.showModal();\r\n    },\r\n\r\n    // function to call when delete button is pressed\r\n     handleDeleteButton() {\r\n      var clickInfo = clickData;    // retrieve event object, so I can delete it\r\n      if (confirm(`Are you sure you want to delete the event '${clickInfo.event.title}'`)) {\r\n        clickInfo.event.remove()\r\n        this.closeModal();\r\n      }\r\n      this.deleteEventFromDB(clickInfo.event.id);\r\n      idNum--;\r\n    },\r\n\r\n    // bug where it deletes based on event.id not id\r\n    async deleteEventFromDB(id){\r\n      const res = await fetch(`http://localhost:5000/events/${id}`, {\r\n        method: 'DELETE'\r\n      })\r\n\r\n      res.status === 200 ? \r\n      (this.events = this.events.filter((event) => event.id !== id)) :\r\n      alert('Error deleting event')\r\n    },\r\n\r\n    handleEvents(events) {\r\n      this.currentEvents = events\r\n    },\r\n\r\n    async addEventToDB(event) {\r\n      console.log('hello')\r\n      const res = await fetch('http://localhost:5000/events',{\r\n        method: 'POST',\r\n        headers: {\r\n          'Content-type': 'application/json',\r\n        },\r\n        body: JSON.stringify(event)\r\n      })\r\n      const data = await res.json()\r\n      this.events = [...this.events, data]\r\n    },\r\n\r\n    async updateEventToDB(clickInfo){\r\n      console.log(clickInfo)\r\n       const res = await fetch(`http://localhost:5000/events/${clickInfo.event.id}`, {\r\n        method: 'PUT',\r\n        headers: {\r\n          'Content-type': 'application/json',\r\n        },\r\n        body: JSON.stringify(clickInfo)\r\n      })\r\n      const data = await res.json()\r\n      this.events = [...this.events, data]\r\n    },\r\n\r\n    // make modal visible\r\n    async showModal() {\r\n      this.isModalVisible = true;\r\n      let data;\r\n      data = await this.getEvents();\r\n      console.log(\"hello\")\r\n      let i;\r\n      for (i = 0; i < data.length; i++)\r\n      {\r\n        if (data[i].id == clickData.event.id){\r\n          this.noteTitle = data[i].title;\r\n          this.message = data[i].extendedProps.text;\r\n        }\r\n      }\r\n    },\r\n\r\n    // close modal for taking notes\r\n    async closeModal() {\r\n      this.isModalVisible = false;\r\n    },\r\n\r\n    async getEvents(){\r\n      this.events = await this.fetchEvents();\r\n      main = [];\r\n      for(let i = 0; i < this.events.length; i++){ \r\n         main.push(this.events[i].event);\r\n         if (this.events[i].id > idNum)\r\n         {\r\n           idNum = this.events[i].id;\r\n         }\r\n      }\r\n      if (this.events.length > 0){\r\n        idNum++;\r\n      }\r\n      this.events = main;\r\n      return this.events;\r\n    },\r\n\r\n    async fetchEvents(){\r\n      const res = await fetch('http://localhost:5000/events')\r\n      const data = await res.json()\r\n      return data\r\n    },\r\n\r\n    async fetchEvent(id){\r\n      const res = await fetch(`http://localhost:5000/events/${id}`)\r\n      const data = await res.json()\r\n      return data\r\n    },\r\n  },\r\n  async created() {\r\n    this.events = await this.fetchEvents();\r\n  },\r\n}\r\n</script>\r\n\r\n<template>\r\n  <div class='demo-app'>\r\n      <NotesModal\r\n            v-show=\"isModalVisible\"\r\n            @close=\"closeModal\"\r\n            @deleteEvent=\"handleDeleteButton\"\r\n            :title = \"noteTitle\"\r\n            :msg=\"message\"\r\n            @noteTitleChanged = \"noteTitle = $event\"\r\n            @messageChanged = \"message = $event\"\r\n          />\r\n          <Navbar\r\n      v-if=\"isModalVisible == false\"\r\n       />\r\n      <div class='demo-app-main'>\r\n      <FullCalendar\r\n      v-if=\"isModalVisible == false\"\r\n      class='demo-app-calendar'\r\n      :options='calendarOptions'       \r\n      >\r\n        <template v-slot:eventContent='arg'>\r\n          <b>{{ arg.timeText }}</b>\r\n          <i>{{ arg.event.title }}</i>\r\n        </template>\r\n      </FullCalendar>\r\n      </div>\r\n  </div>\r\n</template>\r\n\r\n<style lang='css'>\r\n\r\nh2 {\r\n  margin: 0;\r\n  font-size: 16px;\r\n}\r\n\r\nul {\r\n  margin: 0;\r\n  padding: 0 0 0 1.5em;\r\n}\r\n\r\nli {\r\n  margin: 1.5em 0;\r\n  padding: 0;\r\n}\r\n\r\nb { /* used for event dates/times */\r\n  margin-right: 3px;\r\n}\r\n\r\n.demo-app {\r\n  display: block;\r\n  min-height: 80%;\r\n  font-family: Arial, Helvetica Neue, Helvetica, sans-serif;\r\n  font-size: 14px;\r\n}\r\n\r\n.demo-app-main {\r\n  flex-grow: 1;\r\n  padding: 3em;\r\n}\r\n\r\n.fc { /* the calendar root */\r\n  max-height: 800px;\r\n  max-width: 1500px;\r\n  margin: 0 auto;\r\n}\r\n\r\n</style>"],"sourceRoot":""}]);
+// Exports
+/* harmony default export */ __webpack_exports__["default"] = (___CSS_LOADER_EXPORT___);
+
+
+/***/ }),
+
+/***/ "./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/components/Navbar.vue?vue&type=style&index=0&lang=css&":
+/*!******************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/components/Navbar.vue?vue&type=style&index=0&lang=css& ***!
+  \******************************************************************************************************************************************************************************************************************************/
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../node_modules/css-loader/dist/runtime/api.js */ "./node_modules/css-loader/dist/runtime/api.js");
+/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0__);
+// Imports
+
+var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(true);
+// Module
+___CSS_LOADER_EXPORT___.push([module.id, "\n.navbar{\r\n  height: 40px;\r\n  width: 100%;\r\n  background: #cccccc;\n}\n.welcomeMessage{\r\n  float: left;\r\n  margin-left: 140px;\r\n  color: rgb(24, 24, 24);\r\n  margin-top: 4px;\n}\n.logout{\r\n  float: right;\r\n  width: 80px;\r\n  margin-right: 20px;\r\n  margin-top: 8px;\n}\r\n", "",{"version":3,"sources":["webpack://src/components/Navbar.vue"],"names":[],"mappings":";AA4BA;EACA,YAAA;EACA,WAAA;EACA,mBAAA;AACA;AAEA;EACA,WAAA;EACA,kBAAA;EACA,sBAAA;EACA,eAAA;AACA;AACA;EACA,YAAA;EACA,WAAA;EACA,kBAAA;EACA,eAAA;AACA","sourcesContent":["<template>\r\n    <div class = \"navbar\">\r\n        <h1 class = \"welcomeMessage\">Welcome, User</h1>\r\n        <button class = \"logout\"\r\n            type=\"button\"\r\n            @click=\"close\"                \r\n            aria-label=\"Log out button\"\r\n          >\r\n          Logout\r\n            <font-awesome-icon icon = \"sign-out-alt\" /> \r\n          </button>\r\n    </div>\r\n</template>\r\n\r\n<script>\r\n  export default {\r\n    name: 'Navbar',\r\n     methods: {\r\n      close() {\r\n        this.$emit('close');\r\n      },\r\n    },\r\n  };\r\n\r\n</script>\r\n\r\n\r\n<style>\r\n.navbar{\r\n  height: 40px;\r\n  width: 100%;\r\n  background: #cccccc;\r\n}\r\n\r\n.welcomeMessage{\r\n  float: left;\r\n  margin-left: 140px;\r\n  color: rgb(24, 24, 24);\r\n  margin-top: 4px;\r\n}\r\n.logout{\r\n  float: right;\r\n  width: 80px;\r\n  margin-right: 20px;\r\n  margin-top: 8px;\r\n}\r\n</style>"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ __webpack_exports__["default"] = (___CSS_LOADER_EXPORT___);
 
@@ -537,28 +669,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(true);
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\ntextarea{\n  height: 250px;\n  width: 350px;\n}\n.modal-backdrop {\n  position: fixed;\n  top: 0;\n  bottom: 0;\n  left: 0;\n  right: 0;\n  background-color: rgba(0, 0, 0, 0.3);\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n.modal {\n  background: #FFFFFF;\n  box-shadow: 2px 2px 20px 1px;\n  overflow-x: auto;\n  display: flex;\n  flex-direction: column;\n  height: 400px;\n  width: 400px;\n}\n.modal-header,\n.modal-footer {\n  padding: 15px;\n  display: flex;\n}\n.modal-header {\n  position: relative;\n  border-bottom: 1px solid #eeeeee;\n  color: #4AAE9B;\n  justify-content: space-between;\n}\n.modal-footer {\n  border-top: 1px solid #eeeeee;\n  flex-direction: column;\n  justify-content: flex-end;\n}\n.modal-body {\n  position: relative;\n  padding: 20px 10px;\n}\n.btn-delete {\n  position: absolute;\n  top: 0;\n  right: 0;\n  border: none;\n  /*font-size: 30px;*/\n  padding: 10px;\n  cursor: pointer;\n  font-weight: bold;\n  color: rgb(206, 49, 49);\n  background: #ffffff;\n  border: 1px solid #ff0000;\n  border-radius: 2px;\n  font-size: 1.5em;\nmargin: 5px;\n}\n.btn-close {\n  color: white;\n  background: #4AAE9B;\n  border: 1px solid #4AAE9B;\n  border-radius: 2px;\n}\n", "",{"version":3,"sources":["webpack://src/components/NotesModal.vue"],"names":[],"mappings":";AAoEA;EACA,aAAA;EACA,YAAA;AACA;AAEA;EACA,eAAA;EACA,MAAA;EACA,SAAA;EACA,OAAA;EACA,QAAA;EACA,oCAAA;EACA,aAAA;EACA,uBAAA;EACA,mBAAA;AACA;AAEA;EACA,mBAAA;EACA,4BAAA;EACA,gBAAA;EACA,aAAA;EACA,sBAAA;EACA,aAAA;EACA,YAAA;AACA;AAEA;;EAEA,aAAA;EACA,aAAA;AACA;AAEA;EACA,kBAAA;EACA,gCAAA;EACA,cAAA;EACA,8BAAA;AACA;AAEA;EACA,6BAAA;EACA,sBAAA;EACA,yBAAA;AACA;AAEA;EACA,kBAAA;EACA,kBAAA;AACA;AAEA;EACA,kBAAA;EACA,MAAA;EACA,QAAA;EACA,YAAA;EACA,mBAAA;EACA,aAAA;EACA,eAAA;EACA,iBAAA;EACA,uBAAA;EACA,mBAAA;EACA,yBAAA;EACA,kBAAA;EACA,gBAAA;AACA,WAAA;AACA;AAEA;EACA,YAAA;EACA,mBAAA;EACA,yBAAA;EACA,kBAAA;AACA","sourcesContent":["<template>\r\n  <transition name=\"modal-fade\">\r\n    <div class=\"modal-backdrop\">\r\n      <div class=\"modal\"\r\n        role=\"dialog\"\r\n        aria-labelledby=\"modalTitle\"\r\n        aria-describedby=\"modalDescription\"\r\n      >\r\n        <header\r\n          class=\"modal-header\"\r\n          id=\"modalTitle\"\r\n        >\r\n          <input v-model=\"message\" placeholder=\"edit event title\">\r\n          \r\n          <!-- call function to delete event if user presses delete button -->\r\n          <!-- change delete to trash bin font icon -->\r\n          <button\r\n            type=\"button\"\r\n            class=\"btn-delete\"\r\n            @click=\"deleteEvent\"\r\n            aria-label=\"Delete modal\"\r\n          >\r\n            <font-awesome-icon icon = \"trash\" />\r\n          </button>\r\n        </header>\r\n\r\n        <section\r\n          class=\"modal-body\"\r\n          id=\"modalDescription\"\r\n        >\r\n          <textarea v-model=\"message\" placeholder=\"add details here\"></textarea>\r\n        </section>\r\n\r\n        <footer class=\"modal-footer\">\r\n          <button\r\n            type=\"button\"\r\n            class=\"btn-close\"\r\n            @click=\"close\"\r\n            aria-label=\"Close modal\"\r\n          >\r\n            Close and Save Note\r\n          </button>\r\n        </footer>\r\n      </div>\r\n    </div>\r\n  </transition>\r\n</template>\r\n\r\n\r\n<script>\r\nimport FullCalendar from '@fullcalendar/vue/dist/FullCalendar';\r\n  export default {\r\n    name: 'NotesModal',\r\n    props:{\r\n      deleteButton: Boolean,\r\n    },\r\n    methods: {\r\n      close() {\r\n        this.$emit('close');\r\n      },\r\n      deleteEvent(){\r\n        this.$emit('deleteEvent');\r\n      }\r\n    },\r\n  };\r\n</script>\r\n\r\n<style>\r\n  textarea{\r\n    height: 250px;\r\n    width: 350px;\r\n  }\r\n\r\n  .modal-backdrop {\r\n    position: fixed;\r\n    top: 0;\r\n    bottom: 0;\r\n    left: 0;\r\n    right: 0;\r\n    background-color: rgba(0, 0, 0, 0.3);\r\n    display: flex;\r\n    justify-content: center;\r\n    align-items: center;\r\n  }\r\n\r\n  .modal {\r\n    background: #FFFFFF;\r\n    box-shadow: 2px 2px 20px 1px;\r\n    overflow-x: auto;\r\n    display: flex;\r\n    flex-direction: column;\r\n    height: 400px;\r\n    width: 400px;\r\n  }\r\n\r\n  .modal-header,\r\n  .modal-footer {\r\n    padding: 15px;\r\n    display: flex;\r\n  }\r\n\r\n  .modal-header {\r\n    position: relative;\r\n    border-bottom: 1px solid #eeeeee;\r\n    color: #4AAE9B;\r\n    justify-content: space-between;\r\n  }\r\n\r\n  .modal-footer {\r\n    border-top: 1px solid #eeeeee;\r\n    flex-direction: column;\r\n    justify-content: flex-end;\r\n  }\r\n\r\n  .modal-body {\r\n    position: relative;\r\n    padding: 20px 10px;\r\n  }\r\n\r\n  .btn-delete {\r\n    position: absolute;\r\n    top: 0;\r\n    right: 0;\r\n    border: none;\r\n    /*font-size: 30px;*/\r\n    padding: 10px;\r\n    cursor: pointer;\r\n    font-weight: bold;\r\n    color: rgb(206, 49, 49);\r\n    background: #ffffff;\r\n    border: 1px solid #ff0000;\r\n    border-radius: 2px;\r\n    font-size: 1.5em;\r\n  margin: 5px;\r\n  }\r\n\r\n  .btn-close {\r\n    color: white;\r\n    background: #4AAE9B;\r\n    border: 1px solid #4AAE9B;\r\n    border-radius: 2px;\r\n  }\r\n</style>"],"sourceRoot":""}]);
-// Exports
-/* harmony default export */ __webpack_exports__["default"] = (___CSS_LOADER_EXPORT___);
-
-
-/***/ }),
-
-/***/ "./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/components/Sidebar.vue?vue&type=style&index=0&lang=css&":
-/*!*******************************************************************************************************************************************************************************************************************************!*\
-  !*** ./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/components/Sidebar.vue?vue&type=style&index=0&lang=css& ***!
-  \*******************************************************************************************************************************************************************************************************************************/
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../node_modules/css-loader/dist/runtime/api.js */ "./node_modules/css-loader/dist/runtime/api.js");
-/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0__);
-// Imports
-
-var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(true);
-// Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n.sidebar{\r\n  width: 150px;\r\n  line-height: 1.5;\r\n  background: #51c2f6;\r\n  border-right: 1px solid #d3e2e8;\r\n  padding: 2em;\n}\r\n", "",{"version":3,"sources":["webpack://src/components/Sidebar.vue"],"names":[],"mappings":";AA4BA;EACA,YAAA;EACA,gBAAA;EACA,mBAAA;EACA,+BAAA;EACA,YAAA;AACA","sourcesContent":["<template>\r\n    <div class = \"sidebar\">\r\n        <h1>Side bar</h1>\r\n        <button\r\n            type=\"button\"\r\n            @click=\"close\"                \r\n            aria-label=\"Log out button\"\r\n          >\r\n          Logout\r\n            <!-- <font-awesome-icon icon = \"trash\" /> -->\r\n          </button>\r\n    </div>\r\n</template>\r\n\r\n<script>\r\n  export default {\r\n    name: 'Sidebar',\r\n     methods: {\r\n      close() {\r\n        this.$emit('close');\r\n      },\r\n    },\r\n  };\r\n\r\n</script>\r\n\r\n\r\n<style>\r\n.sidebar{\r\n  width: 150px;\r\n  line-height: 1.5;\r\n  background: #51c2f6;\r\n  border-right: 1px solid #d3e2e8;\r\n  padding: 2em;\r\n}\r\n</style>"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, "\ntextarea{\n  height: 250px;\n  width: 350px;\n}\n.modal-backdrop {\n  position: fixed;\n  top: 0;\n  bottom: 0;\n  left: 0;\n  right: 0;\n  background-color: rgba(0, 0, 0, 0.3);\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n.modal {\n  background: #FFFFFF;\n  box-shadow: 2px 2px 20px 1px;\n  overflow-x: auto;\n  display: flex;\n  flex-direction: column;\n  height: 400px;\n  width: 400px;\n}\n.modal-header,\n.modal-footer {\n  padding: 15px;\n  display: flex;\n}\n.modal-header {\n  position: relative;\n  border-bottom: 1px solid #eeeeee;\n  color: #4AAE9B;\n  justify-content: space-between;\n}\n.modal-footer {\n  border-top: 1px solid #eeeeee;\n  flex-direction: column;\n  justify-content: flex-end;\n}\n.modal-body {\n  position: relative;\n  padding: 20px 10px;\n}\n.btn-delete {\n  position: absolute;\n  top: 0;\n  right: 0;\n  border: none;\n  /*font-size: 30px;*/\n  padding: 10px;\n  cursor: pointer;\n  font-weight: bold;\n  color: rgb(206, 49, 49);\n  background: #ffffff;\n  border: 1px solid #ff0000;\n  border-radius: 2px;\n  font-size: 1.5em;\nmargin: 5px;\n}\n.btn-close {\n  color: white;\n  background: #4AAE9B;\n  border: 1px solid #4AAE9B;\n  border-radius: 2px;\n}\n#textBox{\n  height: 250px;\n  width: 360px;\n}\n.datesInfo{\n  margin-right: 150px;\n}\n", "",{"version":3,"sources":["webpack://src/components/NotesModal.vue"],"names":[],"mappings":";AAiFA;EACA,aAAA;EACA,YAAA;AACA;AAEA;EACA,eAAA;EACA,MAAA;EACA,SAAA;EACA,OAAA;EACA,QAAA;EACA,oCAAA;EACA,aAAA;EACA,uBAAA;EACA,mBAAA;AACA;AAEA;EACA,mBAAA;EACA,4BAAA;EACA,gBAAA;EACA,aAAA;EACA,sBAAA;EACA,aAAA;EACA,YAAA;AACA;AAEA;;EAEA,aAAA;EACA,aAAA;AACA;AAEA;EACA,kBAAA;EACA,gCAAA;EACA,cAAA;EACA,8BAAA;AACA;AAEA;EACA,6BAAA;EACA,sBAAA;EACA,yBAAA;AACA;AAEA;EACA,kBAAA;EACA,kBAAA;AACA;AAEA;EACA,kBAAA;EACA,MAAA;EACA,QAAA;EACA,YAAA;EACA,mBAAA;EACA,aAAA;EACA,eAAA;EACA,iBAAA;EACA,uBAAA;EACA,mBAAA;EACA,yBAAA;EACA,kBAAA;EACA,gBAAA;AACA,WAAA;AACA;AAEA;EACA,YAAA;EACA,mBAAA;EACA,yBAAA;EACA,kBAAA;AACA;AAEA;EACA,aAAA;EACA,YAAA;AACA;AAEA;EACA,mBAAA;AACA","sourcesContent":["<template>\r\n  <transition name=\"modal-fade\">\r\n    <div class=\"modal-backdrop\">\r\n      <div class=\"modal\"\r\n        role=\"dialog\"\r\n        aria-labelledby=\"modalTitle\"\r\n        aria-describedby=\"modalDescription\"\r\n      >\r\n        <header\r\n          class=\"modal-header\"\r\n          id=\"modalTitle\"\r\n        >\r\n          <input type = \"text\" placeholder=\"edit event title\" :value=\"title\"\r\n          @input = \"changeNoteTitle\">\r\n\r\n          <p id = \"dateInfo\">howdydddddd</p>\r\n          \r\n          <button\r\n            type=\"button\"\r\n            class=\"btn-delete\"\r\n            @click=\"deleteEvent\"\r\n            aria-label=\"Delete modal\"\r\n          >\r\n            <font-awesome-icon icon = \"trash\" />\r\n          </button>\r\n        </header>\r\n\r\n        <section\r\n          class=\"modal-body\"\r\n          id=\"modalDescription\"\r\n        >\r\n          <textarea id = \"textBox\" type=\"text\" placeholder=\"add details here\" :value=\"msg\"\r\n          @input = \"changeMessage\"></textarea>\r\n        </section>\r\n\r\n        <footer class=\"modal-footer\">\r\n          <button\r\n            type=\"button\"\r\n            class=\"btn-close\"\r\n            @click=\"close\"\r\n            aria-label=\"Close modal\"\r\n          >\r\n            Close and Save Note\r\n          </button>\r\n        </footer>\r\n      </div>\r\n    </div>\r\n  </transition>\r\n</template>\r\n\r\n\r\n<script>\r\n  export default {\r\n    name: 'NotesModal',\r\n    props: ['title','msg'],\r\n    data(){\r\n      return{\r\n        noteTitle: '',\r\n        message: '',\r\n      }\r\n    },\r\n    methods: {\r\n      close() {\r\n        this.$emit('close');\r\n      },\r\n      deleteEvent(){\r\n        this.$emit('deleteEvent');\r\n      },\r\n      changeNoteTitle(event){\r\n        this.noteTitle = event.target.value;\r\n        this.$emit('noteTitleChanged', this.noteTitle);\r\n      },\r\n      changeMessage(event){\r\n        this.message = event.target.value;\r\n        this.$emit('messageChanged', this.message);\r\n      }\r\n    },\r\n  };\r\n</script>\r\n\r\n<style>\r\n  textarea{\r\n    height: 250px;\r\n    width: 350px;\r\n  }\r\n\r\n  .modal-backdrop {\r\n    position: fixed;\r\n    top: 0;\r\n    bottom: 0;\r\n    left: 0;\r\n    right: 0;\r\n    background-color: rgba(0, 0, 0, 0.3);\r\n    display: flex;\r\n    justify-content: center;\r\n    align-items: center;\r\n  }\r\n\r\n  .modal {\r\n    background: #FFFFFF;\r\n    box-shadow: 2px 2px 20px 1px;\r\n    overflow-x: auto;\r\n    display: flex;\r\n    flex-direction: column;\r\n    height: 400px;\r\n    width: 400px;\r\n  }\r\n\r\n  .modal-header,\r\n  .modal-footer {\r\n    padding: 15px;\r\n    display: flex;\r\n  }\r\n\r\n  .modal-header {\r\n    position: relative;\r\n    border-bottom: 1px solid #eeeeee;\r\n    color: #4AAE9B;\r\n    justify-content: space-between;\r\n  }\r\n\r\n  .modal-footer {\r\n    border-top: 1px solid #eeeeee;\r\n    flex-direction: column;\r\n    justify-content: flex-end;\r\n  }\r\n\r\n  .modal-body {\r\n    position: relative;\r\n    padding: 20px 10px;\r\n  }\r\n\r\n  .btn-delete {\r\n    position: absolute;\r\n    top: 0;\r\n    right: 0;\r\n    border: none;\r\n    /*font-size: 30px;*/\r\n    padding: 10px;\r\n    cursor: pointer;\r\n    font-weight: bold;\r\n    color: rgb(206, 49, 49);\r\n    background: #ffffff;\r\n    border: 1px solid #ff0000;\r\n    border-radius: 2px;\r\n    font-size: 1.5em;\r\n  margin: 5px;\r\n  }\r\n\r\n  .btn-close {\r\n    color: white;\r\n    background: #4AAE9B;\r\n    border: 1px solid #4AAE9B;\r\n    border-radius: 2px;\r\n  }\r\n\r\n  #textBox{\r\n    height: 250px;\r\n    width: 360px;\r\n  }\r\n\r\n  .datesInfo{\r\n    margin-right: 150px;\r\n  }\r\n</style>"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ __webpack_exports__["default"] = (___CSS_LOADER_EXPORT___);
 
@@ -36617,6 +36728,33 @@ var update = _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js
 
 /***/ }),
 
+/***/ "./node_modules/style-loader/dist/cjs.js!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/components/Navbar.vue?vue&type=style&index=0&lang=css&":
+/*!**********************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/style-loader/dist/cjs.js!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/components/Navbar.vue?vue&type=style&index=0&lang=css& ***!
+  \**********************************************************************************************************************************************************************************************************************************************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! !../../node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js */ "./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
+/* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_vue_loader_lib_index_js_vue_loader_options_Navbar_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../node_modules/css-loader/dist/cjs.js!../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../node_modules/vue-loader/lib/index.js??vue-loader-options!./Navbar.vue?vue&type=style&index=0&lang=css& */ "./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/components/Navbar.vue?vue&type=style&index=0&lang=css&");
+
+            
+
+var options = {};
+
+options.insert = "head";
+options.singleton = false;
+
+var update = _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default()(_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_vue_loader_lib_index_js_vue_loader_options_Navbar_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_1__["default"], options);
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = (_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_vue_loader_lib_index_js_vue_loader_options_Navbar_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_1__["default"].locals || {});
+
+/***/ }),
+
 /***/ "./node_modules/style-loader/dist/cjs.js!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/components/NotesModal.vue?vue&type=style&index=0&lang=css&":
 /*!**************************************************************************************************************************************************************************************************************************************************************************!*\
   !*** ./node_modules/style-loader/dist/cjs.js!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/components/NotesModal.vue?vue&type=style&index=0&lang=css& ***!
@@ -36641,33 +36779,6 @@ var update = _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js
 
 
 /* harmony default export */ __webpack_exports__["default"] = (_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_vue_loader_lib_index_js_vue_loader_options_NotesModal_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_1__["default"].locals || {});
-
-/***/ }),
-
-/***/ "./node_modules/style-loader/dist/cjs.js!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/components/Sidebar.vue?vue&type=style&index=0&lang=css&":
-/*!***********************************************************************************************************************************************************************************************************************************************************************!*\
-  !*** ./node_modules/style-loader/dist/cjs.js!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/components/Sidebar.vue?vue&type=style&index=0&lang=css& ***!
-  \***********************************************************************************************************************************************************************************************************************************************************************/
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! !../../node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js */ "./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
-/* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_vue_loader_lib_index_js_vue_loader_options_Sidebar_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../node_modules/css-loader/dist/cjs.js!../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../node_modules/vue-loader/lib/index.js??vue-loader-options!./Sidebar.vue?vue&type=style&index=0&lang=css& */ "./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/components/Sidebar.vue?vue&type=style&index=0&lang=css&");
-
-            
-
-var options = {};
-
-options.insert = "head";
-options.singleton = false;
-
-var update = _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default()(_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_vue_loader_lib_index_js_vue_loader_options_Sidebar_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_1__["default"], options);
-
-
-
-/* harmony default export */ __webpack_exports__["default"] = (_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_vue_loader_lib_index_js_vue_loader_options_Sidebar_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_1__["default"].locals || {});
 
 /***/ }),
 
@@ -36736,6 +36847,44 @@ component.options.__file = "src/DemoApp.vue"
 
 /***/ }),
 
+/***/ "./src/components/Navbar.vue":
+/*!***********************************!*\
+  !*** ./src/components/Navbar.vue ***!
+  \***********************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _Navbar_vue_vue_type_template_id_41458b80___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Navbar.vue?vue&type=template&id=41458b80& */ "./src/components/Navbar.vue?vue&type=template&id=41458b80&");
+/* harmony import */ var _Navbar_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Navbar.vue?vue&type=script&lang=js& */ "./src/components/Navbar.vue?vue&type=script&lang=js&");
+/* harmony import */ var _Navbar_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Navbar.vue?vue&type=style&index=0&lang=css& */ "./src/components/Navbar.vue?vue&type=style&index=0&lang=css&");
+/* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! !../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+
+
+
+;
+
+
+/* normalize component */
+
+var component = (0,_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_3__["default"])(
+  _Navbar_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
+  _Navbar_vue_vue_type_template_id_41458b80___WEBPACK_IMPORTED_MODULE_0__.render,
+  _Navbar_vue_vue_type_template_id_41458b80___WEBPACK_IMPORTED_MODULE_0__.staticRenderFns,
+  false,
+  null,
+  null,
+  null
+  
+)
+
+/* hot reload */
+if (false) { var api; }
+component.options.__file = "src/components/Navbar.vue"
+/* harmony default export */ __webpack_exports__["default"] = (component.exports);
+
+/***/ }),
+
 /***/ "./src/components/NotesModal.vue":
 /*!***************************************!*\
   !*** ./src/components/NotesModal.vue ***!
@@ -36774,44 +36923,6 @@ component.options.__file = "src/components/NotesModal.vue"
 
 /***/ }),
 
-/***/ "./src/components/Sidebar.vue":
-/*!************************************!*\
-  !*** ./src/components/Sidebar.vue ***!
-  \************************************/
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _Sidebar_vue_vue_type_template_id_7d622f5c___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Sidebar.vue?vue&type=template&id=7d622f5c& */ "./src/components/Sidebar.vue?vue&type=template&id=7d622f5c&");
-/* harmony import */ var _Sidebar_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Sidebar.vue?vue&type=script&lang=js& */ "./src/components/Sidebar.vue?vue&type=script&lang=js&");
-/* harmony import */ var _Sidebar_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Sidebar.vue?vue&type=style&index=0&lang=css& */ "./src/components/Sidebar.vue?vue&type=style&index=0&lang=css&");
-/* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! !../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
-
-
-
-;
-
-
-/* normalize component */
-
-var component = (0,_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_3__["default"])(
-  _Sidebar_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
-  _Sidebar_vue_vue_type_template_id_7d622f5c___WEBPACK_IMPORTED_MODULE_0__.render,
-  _Sidebar_vue_vue_type_template_id_7d622f5c___WEBPACK_IMPORTED_MODULE_0__.staticRenderFns,
-  false,
-  null,
-  null,
-  null
-  
-)
-
-/* hot reload */
-if (false) { var api; }
-component.options.__file = "src/components/Sidebar.vue"
-/* harmony default export */ __webpack_exports__["default"] = (component.exports);
-
-/***/ }),
-
 /***/ "./src/DemoApp.vue?vue&type=script&lang=js&":
 /*!**************************************************!*\
   !*** ./src/DemoApp.vue?vue&type=script&lang=js& ***!
@@ -36822,6 +36933,19 @@ component.options.__file = "src/components/Sidebar.vue"
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_3_0_rules_0_use_node_modules_vue_loader_lib_index_js_vue_loader_options_node_modules_source_map_loader_dist_cjs_js_DemoApp_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../node_modules/babel-loader/lib/index.js??clonedRuleSet-3[0].rules[0].use!../node_modules/vue-loader/lib/index.js??vue-loader-options!../node_modules/source-map-loader/dist/cjs.js!./DemoApp.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-3[0].rules[0].use!./node_modules/vue-loader/lib/index.js??vue-loader-options!./node_modules/source-map-loader/dist/cjs.js!./src/DemoApp.vue?vue&type=script&lang=js&");
  /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_clonedRuleSet_3_0_rules_0_use_node_modules_vue_loader_lib_index_js_vue_loader_options_node_modules_source_map_loader_dist_cjs_js_DemoApp_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
+
+/***/ }),
+
+/***/ "./src/components/Navbar.vue?vue&type=script&lang=js&":
+/*!************************************************************!*\
+  !*** ./src/components/Navbar.vue?vue&type=script&lang=js& ***!
+  \************************************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_3_0_rules_0_use_node_modules_vue_loader_lib_index_js_vue_loader_options_node_modules_source_map_loader_dist_cjs_js_Navbar_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../node_modules/babel-loader/lib/index.js??clonedRuleSet-3[0].rules[0].use!../../node_modules/vue-loader/lib/index.js??vue-loader-options!../../node_modules/source-map-loader/dist/cjs.js!./Navbar.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-3[0].rules[0].use!./node_modules/vue-loader/lib/index.js??vue-loader-options!./node_modules/source-map-loader/dist/cjs.js!./src/components/Navbar.vue?vue&type=script&lang=js&");
+ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_clonedRuleSet_3_0_rules_0_use_node_modules_vue_loader_lib_index_js_vue_loader_options_node_modules_source_map_loader_dist_cjs_js_Navbar_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
 
 /***/ }),
 
@@ -36838,19 +36962,6 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./src/components/Sidebar.vue?vue&type=script&lang=js&":
-/*!*************************************************************!*\
-  !*** ./src/components/Sidebar.vue?vue&type=script&lang=js& ***!
-  \*************************************************************/
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_3_0_rules_0_use_node_modules_vue_loader_lib_index_js_vue_loader_options_node_modules_source_map_loader_dist_cjs_js_Sidebar_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../node_modules/babel-loader/lib/index.js??clonedRuleSet-3[0].rules[0].use!../../node_modules/vue-loader/lib/index.js??vue-loader-options!../../node_modules/source-map-loader/dist/cjs.js!./Sidebar.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-3[0].rules[0].use!./node_modules/vue-loader/lib/index.js??vue-loader-options!./node_modules/source-map-loader/dist/cjs.js!./src/components/Sidebar.vue?vue&type=script&lang=js&");
- /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_clonedRuleSet_3_0_rules_0_use_node_modules_vue_loader_lib_index_js_vue_loader_options_node_modules_source_map_loader_dist_cjs_js_Sidebar_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
-
-/***/ }),
-
 /***/ "./src/DemoApp.vue?vue&type=style&index=0&lang=css&":
 /*!**********************************************************!*\
   !*** ./src/DemoApp.vue?vue&type=style&index=0&lang=css& ***!
@@ -36864,6 +36975,19 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./src/components/Navbar.vue?vue&type=style&index=0&lang=css&":
+/*!********************************************************************!*\
+  !*** ./src/components/Navbar.vue?vue&type=style&index=0&lang=css& ***!
+  \********************************************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_style_loader_dist_cjs_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_vue_loader_lib_index_js_vue_loader_options_Navbar_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../node_modules/style-loader/dist/cjs.js!../../node_modules/css-loader/dist/cjs.js!../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../node_modules/vue-loader/lib/index.js??vue-loader-options!./Navbar.vue?vue&type=style&index=0&lang=css& */ "./node_modules/style-loader/dist/cjs.js!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/components/Navbar.vue?vue&type=style&index=0&lang=css&");
+
+
+/***/ }),
+
 /***/ "./src/components/NotesModal.vue?vue&type=style&index=0&lang=css&":
 /*!************************************************************************!*\
   !*** ./src/components/NotesModal.vue?vue&type=style&index=0&lang=css& ***!
@@ -36873,19 +36997,6 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_cjs_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_vue_loader_lib_index_js_vue_loader_options_NotesModal_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../node_modules/style-loader/dist/cjs.js!../../node_modules/css-loader/dist/cjs.js!../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../node_modules/vue-loader/lib/index.js??vue-loader-options!./NotesModal.vue?vue&type=style&index=0&lang=css& */ "./node_modules/style-loader/dist/cjs.js!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/components/NotesModal.vue?vue&type=style&index=0&lang=css&");
-
-
-/***/ }),
-
-/***/ "./src/components/Sidebar.vue?vue&type=style&index=0&lang=css&":
-/*!*********************************************************************!*\
-  !*** ./src/components/Sidebar.vue?vue&type=style&index=0&lang=css& ***!
-  \*********************************************************************/
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _node_modules_style_loader_dist_cjs_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_vue_loader_lib_index_js_vue_loader_options_Sidebar_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../node_modules/style-loader/dist/cjs.js!../../node_modules/css-loader/dist/cjs.js!../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../node_modules/vue-loader/lib/index.js??vue-loader-options!./Sidebar.vue?vue&type=style&index=0&lang=css& */ "./node_modules/style-loader/dist/cjs.js!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/components/Sidebar.vue?vue&type=style&index=0&lang=css&");
 
 
 /***/ }),
@@ -36907,6 +37018,23 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./src/components/Navbar.vue?vue&type=template&id=41458b80&":
+/*!******************************************************************!*\
+  !*** ./src/components/Navbar.vue?vue&type=template&id=41458b80& ***!
+  \******************************************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "render": function() { return /* reexport safe */ _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Navbar_vue_vue_type_template_id_41458b80___WEBPACK_IMPORTED_MODULE_0__.render; },
+/* harmony export */   "staticRenderFns": function() { return /* reexport safe */ _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Navbar_vue_vue_type_template_id_41458b80___WEBPACK_IMPORTED_MODULE_0__.staticRenderFns; }
+/* harmony export */ });
+/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Navbar_vue_vue_type_template_id_41458b80___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../node_modules/vue-loader/lib/index.js??vue-loader-options!./Navbar.vue?vue&type=template&id=41458b80& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/components/Navbar.vue?vue&type=template&id=41458b80&");
+
+
+/***/ }),
+
 /***/ "./src/components/NotesModal.vue?vue&type=template&id=1dc5d09c&":
 /*!**********************************************************************!*\
   !*** ./src/components/NotesModal.vue?vue&type=template&id=1dc5d09c& ***!
@@ -36920,23 +37048,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "staticRenderFns": function() { return /* reexport safe */ _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_NotesModal_vue_vue_type_template_id_1dc5d09c___WEBPACK_IMPORTED_MODULE_0__.staticRenderFns; }
 /* harmony export */ });
 /* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_NotesModal_vue_vue_type_template_id_1dc5d09c___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../node_modules/vue-loader/lib/index.js??vue-loader-options!./NotesModal.vue?vue&type=template&id=1dc5d09c& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/components/NotesModal.vue?vue&type=template&id=1dc5d09c&");
-
-
-/***/ }),
-
-/***/ "./src/components/Sidebar.vue?vue&type=template&id=7d622f5c&":
-/*!*******************************************************************!*\
-  !*** ./src/components/Sidebar.vue?vue&type=template&id=7d622f5c& ***!
-  \*******************************************************************/
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "render": function() { return /* reexport safe */ _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Sidebar_vue_vue_type_template_id_7d622f5c___WEBPACK_IMPORTED_MODULE_0__.render; },
-/* harmony export */   "staticRenderFns": function() { return /* reexport safe */ _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Sidebar_vue_vue_type_template_id_7d622f5c___WEBPACK_IMPORTED_MODULE_0__.staticRenderFns; }
-/* harmony export */ });
-/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Sidebar_vue_vue_type_template_id_7d622f5c___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../node_modules/vue-loader/lib/index.js??vue-loader-options!./Sidebar.vue?vue&type=template&id=7d622f5c& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/components/Sidebar.vue?vue&type=template&id=7d622f5c&");
 
 
 /***/ }),
@@ -36970,10 +37081,20 @@ var render = function () {
             expression: "isModalVisible",
           },
         ],
-        on: { close: _vm.closeModal, deleteEvent: _vm.handleDeleteButton },
+        attrs: { title: _vm.noteTitle, msg: _vm.message },
+        on: {
+          close: _vm.closeModal,
+          deleteEvent: _vm.handleDeleteButton,
+          noteTitleChanged: function ($event) {
+            _vm.noteTitle = $event
+          },
+          messageChanged: function ($event) {
+            _vm.message = $event
+          },
+        },
       }),
       _vm._v(" "),
-      _vm.isModalVisible == false ? _c("Sidebar") : _vm._e(),
+      _vm.isModalVisible == false ? _c("Navbar") : _vm._e(),
       _vm._v(" "),
       _c(
         "div",
@@ -37016,6 +37137,47 @@ render._withStripped = true
 
 /***/ }),
 
+/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/components/Navbar.vue?vue&type=template&id=41458b80&":
+/*!*********************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/components/Navbar.vue?vue&type=template&id=41458b80& ***!
+  \*********************************************************************************************************************************************************************************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "render": function() { return /* binding */ render; },
+/* harmony export */   "staticRenderFns": function() { return /* binding */ staticRenderFns; }
+/* harmony export */ });
+var render = function () {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c("div", { staticClass: "navbar" }, [
+    _c("h1", { staticClass: "welcomeMessage" }, [_vm._v("Welcome, User")]),
+    _vm._v(" "),
+    _c(
+      "button",
+      {
+        staticClass: "logout",
+        attrs: { type: "button", "aria-label": "Log out button" },
+        on: { click: _vm.close },
+      },
+      [
+        _vm._v("\n      Logout\n        "),
+        _c("font-awesome-icon", { attrs: { icon: "sign-out-alt" } }),
+      ],
+      1
+    ),
+  ])
+}
+var staticRenderFns = []
+render._withStripped = true
+
+
+
+/***/ }),
+
 /***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/components/NotesModal.vue?vue&type=template&id=1dc5d09c&":
 /*!*************************************************************************************************************************************************************************************************************!*\
   !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/components/NotesModal.vue?vue&type=template&id=1dc5d09c& ***!
@@ -37050,25 +37212,12 @@ var render = function () {
             { staticClass: "modal-header", attrs: { id: "modalTitle" } },
             [
               _c("input", {
-                directives: [
-                  {
-                    name: "model",
-                    rawName: "v-model",
-                    value: _vm.message,
-                    expression: "message",
-                  },
-                ],
-                attrs: { placeholder: "edit event title" },
-                domProps: { value: _vm.message },
-                on: {
-                  input: function ($event) {
-                    if ($event.target.composing) {
-                      return
-                    }
-                    _vm.message = $event.target.value
-                  },
-                },
+                attrs: { type: "text", placeholder: "edit event title" },
+                domProps: { value: _vm.title },
+                on: { input: _vm.changeNoteTitle },
               }),
+              _vm._v(" "),
+              _c("p", { attrs: { id: "dateInfo" } }, [_vm._v("howdydddddd")]),
               _vm._v(" "),
               _c(
                 "button",
@@ -37088,24 +37237,13 @@ var render = function () {
             { staticClass: "modal-body", attrs: { id: "modalDescription" } },
             [
               _c("textarea", {
-                directives: [
-                  {
-                    name: "model",
-                    rawName: "v-model",
-                    value: _vm.message,
-                    expression: "message",
-                  },
-                ],
-                attrs: { placeholder: "add details here" },
-                domProps: { value: _vm.message },
-                on: {
-                  input: function ($event) {
-                    if ($event.target.composing) {
-                      return
-                    }
-                    _vm.message = $event.target.value
-                  },
+                attrs: {
+                  id: "textBox",
+                  type: "text",
+                  placeholder: "add details here",
                 },
+                domProps: { value: _vm.msg },
+                on: { input: _vm.changeMessage },
               }),
             ]
           ),
@@ -37124,42 +37262,6 @@ var render = function () {
         ]
       ),
     ]),
-  ])
-}
-var staticRenderFns = []
-render._withStripped = true
-
-
-
-/***/ }),
-
-/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/components/Sidebar.vue?vue&type=template&id=7d622f5c&":
-/*!**********************************************************************************************************************************************************************************************************!*\
-  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/components/Sidebar.vue?vue&type=template&id=7d622f5c& ***!
-  \**********************************************************************************************************************************************************************************************************/
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "render": function() { return /* binding */ render; },
-/* harmony export */   "staticRenderFns": function() { return /* binding */ staticRenderFns; }
-/* harmony export */ });
-var render = function () {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _c("div", { staticClass: "sidebar" }, [
-    _c("h1", [_vm._v("Side bar")]),
-    _vm._v(" "),
-    _c(
-      "button",
-      {
-        attrs: { type: "button", "aria-label": "Log out button" },
-        on: { click: _vm.close },
-      },
-      [_vm._v("\n      Logout\n        ")]
-    ),
   ])
 }
 var staticRenderFns = []
@@ -37269,7 +37371,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
 _fortawesome_fontawesome_svg_core__WEBPACK_IMPORTED_MODULE_2__.library.add(_fortawesome_free_solid_svg_icons__WEBPACK_IMPORTED_MODULE_4__.faTrash);
+_fortawesome_fontawesome_svg_core__WEBPACK_IMPORTED_MODULE_2__.library.add(_fortawesome_free_solid_svg_icons__WEBPACK_IMPORTED_MODULE_4__.faSignOutAlt);
 vue__WEBPACK_IMPORTED_MODULE_5__["default"].component('font-awesome-icon', _fortawesome_vue_fontawesome__WEBPACK_IMPORTED_MODULE_3__.FontAwesomeIcon);
 
 __webpack_require__(/*! regenerator-runtime/runtime */ "./node_modules/regenerator-runtime/runtime.js");
