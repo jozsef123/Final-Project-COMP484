@@ -22,7 +22,6 @@ export default {
   data: function() {
     return {
       isModalVisible: false,    // is the modal for taking notes visible, no
-      message: 'hello',
       calendarOptions: {
         plugins: [
           dayGridPlugin,
@@ -63,7 +62,7 @@ export default {
 
     handleDateSelect(selectInfo) {
       let title = 'Event Title'; //add input from modal component for title
-      let text = this.message;// take text from NotesModal
+      let text = '';// = this.message;// take text from NotesModal
       let calendarApi = selectInfo.view.calendar
       calendarApi.unselect() // clear date selection
       if (title) {
@@ -80,8 +79,8 @@ export default {
 
     // If user presses an event, call show modal function.
     handleEventClick(selectInfo) {
-      this.showModal();
       clickData = selectInfo;   // save event object, in case I have to delete it
+      this.showModal();
     },
 
     // function to call when delete button is pressed
@@ -107,7 +106,7 @@ export default {
     },
 
     handleEvents(events) {
-    this.currentEvents = events
+      this.currentEvents = events
     },
 
     async addEventToDB(event) {
@@ -123,7 +122,6 @@ export default {
     },
 
     async updateEventToDB(clickInfo){
-      console.log(clickInfo)
        const res = await fetch(`http://localhost:5000/events/${clickInfo.event.id}`, {
         method: 'PUT',
         headers: {
@@ -141,10 +139,7 @@ export default {
     },
 
     // close modal for taking notes
-    closeModal() {
-      console.log(clickData.event)
-      //clickData.event.
-      //updateEventToDB(clickData.event);
+    async closeModal() {
       this.isModalVisible = false;
     },
 
